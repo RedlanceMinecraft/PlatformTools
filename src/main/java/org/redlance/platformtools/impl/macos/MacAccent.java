@@ -36,7 +36,7 @@ public class MacAccent implements PlatformAccent {
         });
 
         subscribeToNotificationChange("AppleColorPreferencesChangedNotification", () -> {
-            consumer.accept(getAccent());
+            consumer.accept(getAccent(null));
             System.out.println("AppleColorPreferencesChangedNotification");
         });
         subscribeToNotificationChange("NSSystemColorsDidChangeNotification", () -> {
