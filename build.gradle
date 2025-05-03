@@ -1,0 +1,41 @@
+plugins {
+    id "maven-publish"
+    id "java-library"
+    id "java"
+}
+
+base.archivesName = "PlatformTools"
+version = "0.0.1"
+group = "org.redlance"
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://jitpack.io")
+    }
+}
+
+dependencies {
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set 17
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = "platformtools"
+            from components.java
+        }
+    }
+
+    repositories {
+        mavenLocal()
+    }
+}
