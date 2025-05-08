@@ -1,7 +1,6 @@
 package org.redlance.platformtools.impl.windows;
 
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.IntByReference;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.impl.windows.jna.DwmApi;
@@ -14,7 +13,7 @@ public class WindowsAccent implements PlatformAccent {
     @Override
     public Color getAccent(Supplier<Color> fallback) {
         IntByReference colorization = new IntByReference();
-        WinDef.BOOLByReference opaque = new WinDef.BOOLByReference();
+        IntByReference opaque = new IntByReference();
 
         var result = DwmApi.INSTANCE.DwmGetColorizationColor(colorization, opaque);
         if (result.intValue() == 0) {
@@ -25,6 +24,6 @@ public class WindowsAccent implements PlatformAccent {
 
     @Override
     public void subscribeToChanges(Long window, Consumer<Color> consumer) {
-        new WinThemeListener(new WinDef.HWND(new Pointer(window)), consumer);
+        new WinThemeListener(new Pointer(window), consumer);
     }
 }
