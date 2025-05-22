@@ -1,6 +1,5 @@
 package org.redlance.platformtools.impl.windows;
 
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +26,7 @@ public class WindowsAccent implements PlatformAccent {
 
     @Override
     public void subscribeToChanges(@Nullable Long window, Consumer<Color> consumer) {
-        if (window == null) window = Native.getWindowID(new StubFrame());
+        if (window == null) window = StubFrame.WINDOW_ID;
         new WinThemeListener(new Pointer(window), consumer);
     }
 }

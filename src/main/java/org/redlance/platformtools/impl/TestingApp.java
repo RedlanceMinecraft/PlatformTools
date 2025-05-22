@@ -1,16 +1,16 @@
 package org.redlance.platformtools.impl;
 
-import org.redlance.platformtools.impl.utils.StubFrame;
-
 import javax.swing.*;
 import java.awt.*;
 
-public class TestingApp extends StubFrame {
+public class TestingApp extends JFrame {
     private final JPanel colorPanel;
 
     public TestingApp(Color initialColor) {
         setTitle("Color Window");
         setSize(400, 300);
+        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
         this.colorPanel = new JPanel();
         this.colorPanel.setBackground(initialColor);
