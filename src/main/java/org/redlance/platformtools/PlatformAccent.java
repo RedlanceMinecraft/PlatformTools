@@ -1,5 +1,7 @@
 package org.redlance.platformtools;
 
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.impl.PlatformAccentImpl;
 
 import java.awt.*;
@@ -10,5 +12,11 @@ public interface PlatformAccent {
     PlatformAccent INSTANCE = new PlatformAccentImpl();
 
     Color getAccent(Supplier<Color> fallback);
-    void subscribeToChanges(Long window, Consumer<Color> consumer);
+
+    @ApiStatus.NonExtendable
+    default void subscribeToChanges(Consumer<Color> consumer) {
+        subscribeToChanges(null, consumer);
+    }
+
+    void subscribeToChanges(@Nullable Long window, Consumer<Color> consumer);
 }

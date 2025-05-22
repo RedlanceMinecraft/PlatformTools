@@ -1,18 +1,16 @@
 package org.redlance.platformtools.impl;
 
-import com.sun.jna.Native;
+import org.redlance.platformtools.impl.utils.StubFrame;
 
 import javax.swing.*;
 import java.awt.*;
 
-public class TestingApp extends JFrame {
+public class TestingApp extends StubFrame {
     private final JPanel colorPanel;
 
     public TestingApp(Color initialColor) {
         setTitle("Color Window");
         setSize(400, 300);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
 
         this.colorPanel = new JPanel();
         this.colorPanel.setBackground(initialColor);
@@ -23,7 +21,7 @@ public class TestingApp extends JFrame {
 
     public static void main(String[] args) {
         TestingApp testingApp = new TestingApp(PlatformAccentImpl.INSTANCE.getAccent(null));
-        PlatformAccentImpl.INSTANCE.subscribeToChanges(Native.getComponentID(testingApp), testingApp::updateColor);
+        PlatformAccentImpl.INSTANCE.subscribeToChanges(testingApp::updateColor);
     }
 
     public void updateColor(Color newColor) {

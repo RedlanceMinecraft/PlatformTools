@@ -4,6 +4,7 @@ import de.jangassen.jfa.JavaToObjc;
 import de.jangassen.jfa.appkit.NSObject;
 import de.jangassen.jfa.appkit.NSUserDefaults;
 import de.jangassen.jfa.foundation.Foundation;
+import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.impl.macos.appkit.NSDistributedNotificationCenter;
 
@@ -30,7 +31,7 @@ public class MacAccent implements PlatformAccent {
     }
 
     @Override
-    public void subscribeToChanges(Long window, Consumer<Color> consumer) {
+    public void subscribeToChanges(@Nullable Long window, Consumer<Color> consumer) {
         subscribeToNotificationChange(null, () -> {
             System.out.println("something");
         });

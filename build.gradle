@@ -16,6 +16,7 @@ repositories {
 }
 
 dependencies {
+    compileOnlyApi("org.jetbrains:annotations:24.0.0")
     api("net.java.dev.jna:jna:5.17.0")
 
     api("com.github.dima-dencep:jfa:main-SNAPSHOT") {
