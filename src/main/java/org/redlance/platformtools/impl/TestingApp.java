@@ -1,10 +1,16 @@
 package org.redlance.platformtools.impl;
 
+import org.redlance.platformtools.PlatformAccent;
+import org.redlance.platformtools.PlatformFileReferer;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import java.io.IOException;
 
 public class TestingApp extends JFrame {
     private final JPanel colorPanel;
+    private final JLabel referrerLabel;
 
     public TestingApp(Color initialColor) {
         setTitle("Color Window");
@@ -16,16 +22,40 @@ public class TestingApp extends JFrame {
         this.colorPanel.setBackground(initialColor);
         add(this.colorPanel);
 
+        JPanel controlsPanel = new JPanel();
+        add(controlsPanel, BorderLayout.SOUTH);
+
+        JButton chooseFileButton = new JButton("Select file");
+        chooseFileButton.addActionListener(this::onChooseFile);
+        controlsPanel.add(chooseFileButton);
+
+        this.referrerLabel = new JLabel("Referrer:");
+        controlsPanel.add(this.referrerLabel);
+
         setVisible(true);
     }
 
     public static void main(String[] args) {
-        TestingApp testingApp = new TestingApp(PlatformAccentImpl.INSTANCE.getAccent(null));
-        PlatformAccentImpl.INSTANCE.subscribeToChanges(testingApp::updateColor);
+        TestingApp testingApp = new TestingApp(PlatformAccent.INSTANCE.getAccent(null));
+        PlatformAccent.INSTANCE.subscribeToChanges(testingApp::updateColor);
     }
 
     public void updateColor(Color newColor) {
         this.colorPanel.setBackground(newColor);
         this.colorPanel.repaint();
+    }
+
+    private void onChooseFile(ActionEvent e) {
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try {
+                String referrer = PlatformFileReferer.INSTANCE.getFileReferer(fileChooser.getSelectedFile());
+                this.referrerLabel.setText("Referrer: " + referrer);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 }
