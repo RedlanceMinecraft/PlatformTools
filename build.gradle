@@ -37,6 +37,33 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = "platformtools"
+
+            pom {
+                name = base.archivesName
+                url = "https://github.com/RedlanceMinecraft/PlatformTools"
+
+                developers {
+                    developer {
+                        id = "dima_dencep"
+                        name = "dima_dencep"
+                        email = "dima_dencep@redlance.org"
+                    }
+                }
+
+                licenses {
+                    license {
+                        name = "MIT"
+                        url = "https://github.com/RedlanceMinecraft/PlatformTools/blob/HEAD/LICENSE"
+                    }
+                }
+
+                scm {
+                    connection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
+                    developerConnection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
+                    url = "https://github.com/RedlanceMinecraft/PlatformTools.git"
+                }
+            }
+
             from components.java
         }
     }
