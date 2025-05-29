@@ -2,12 +2,12 @@ package org.redlance.platformtools.impl.macos;
 
 import com.sun.jna.ptr.DoubleByReference;
 import de.jangassen.jfa.JavaToObjc;
+import de.jangassen.jfa.appkit.NSColor;
+import de.jangassen.jfa.appkit.NSColorSpace;
 import de.jangassen.jfa.appkit.NSDistributedNotificationCenter;
 import de.jangassen.jfa.foundation.Foundation;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformAccent;
-import org.redlance.platformtools.impl.macos.appkit.NSColor;
-import org.redlance.platformtools.impl.macos.appkit.NSColorSpace;
 
 import java.awt.Color;
 import java.util.function.Consumer;

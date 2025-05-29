@@ -19,7 +19,7 @@ dependencies {
     compileOnlyApi("org.jetbrains:annotations:24.0.0")
     api("net.java.dev.jna:jna:5.17.0")
 
-    api("com.github.dima-dencep:jfa:a141bbc812") {
+    api("com.github.dima-dencep:jfa:3cf4588cc7") {
         exclude(group: "net.java.dev.jna")
     }
 }
