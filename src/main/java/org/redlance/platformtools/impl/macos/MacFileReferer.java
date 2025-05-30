@@ -18,6 +18,7 @@ public class MacFileReferer implements PlatformFileReferer {
     public @Nullable String getFileReferer(String path) {
         ID mdItem = CoreServices.INSTANCE.MDItemCreate(null, Foundation.nsString(path));
         ID attribute = CoreServices.INSTANCE.MDItemCopyAttribute(mdItem, Foundation.nsString(ATTRIBUTE_NAME));
+        if (attribute == null || attribute.equals(ID.NIL)) return null;
 
         List<NSObject> referrers = new ArrayList<>();
         Foundation.foreachCFArray(attribute, id -> {
