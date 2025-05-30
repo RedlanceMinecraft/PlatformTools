@@ -1,0 +1,26 @@
+name: Publish
+
+on:
+ - workflow_dispatch
+ - push
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Publish
+        run: ./gradlew build publish
+        env:
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}

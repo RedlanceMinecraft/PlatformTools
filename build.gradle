@@ -5,13 +5,13 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "0.0.1"
+version = "1.0.0"
 group = "org.redlance"
 
 repositories {
     mavenCentral()
     maven {
-        url = uri("https://jitpack.io")
+        url = uri("https://repo.redlance.org/public")
     }
 }
 
@@ -40,6 +40,7 @@ publishing {
 
             pom {
                 name = base.archivesName
+                description = "Use platform-dependent code in java (via jna)"
                 url = "https://github.com/RedlanceMinecraft/PlatformTools"
 
                 developers {
@@ -69,6 +70,13 @@ publishing {
     }
 
     repositories {
-        mavenLocal()
+        maven {
+            name = "RedlanceMinecraft"
+            url = "https://repo.redlance.org/public"
+            credentials {
+                username = "dima_dencep"
+                password = System.getenv("MAVEN_PASSWORD")
+            }
+        }
     }
 }
