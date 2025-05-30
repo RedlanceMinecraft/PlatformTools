@@ -6,5 +6,6 @@ module platformtools {
     requires java.desktop;
     requires org.jetbrains.annotations;
 
-    opens org.redlance.platformtools.impl to jfa;
+    opens org.redlance.platformtools.impl.windows.jna to com.sun.jna;
+    opens org.redlance.platformtools.impl.macos.appkit to jfa, com.sun.jna;
 }
