@@ -2,6 +2,7 @@ package org.redlance.platformtools.impl.windows;
 
 import org.redlance.platformtools.PlatformFileReferer;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -14,6 +15,8 @@ public class WindowsFileReferer implements PlatformFileReferer {
         Properties props = new Properties();
         try (Reader reader = new FileReader(path + ":Zone.Identifier", StandardCharsets.UTF_8)) {
             props.load(reader);
+        } catch (FileNotFoundException ex) {
+            return null;
         }
 
         return (String) props.getOrDefault("HostUrl",
