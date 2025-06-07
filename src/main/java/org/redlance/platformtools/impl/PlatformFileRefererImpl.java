@@ -4,6 +4,7 @@ import com.sun.jna.Platform;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.impl.macos.MacFileReferer;
+import org.redlance.platformtools.impl.unsupported.UnsupportedPlatform;
 import org.redlance.platformtools.impl.windows.WindowsFileReferer;
 
 import java.io.IOException;
@@ -12,7 +13,7 @@ public class PlatformFileRefererImpl implements PlatformFileReferer {
     private final PlatformFileReferer nativePlatformReferer = switch (Platform.getOSType()) {
         case Platform.WINDOWS -> new WindowsFileReferer();
         case Platform.MAC -> new MacFileReferer();
-        default -> null;
+        default -> UnsupportedPlatform.INSTANCE;
     };
 
     @Override

@@ -53,6 +53,7 @@ public class TestingApp extends JFrame {
             try {
                 String referrer = PlatformFileReferer.INSTANCE.getFileReferer(fileChooser.getSelectedFile());
                 this.referrerLabel.setText("Referrer: " + referrer);
+                System.out.println(referrer);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
