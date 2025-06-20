@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 public class MacAccent implements PlatformAccent {
     @Override
     public Color getAccent(Supplier<Color> fallback) {
-        NSColor accentColor = NSColor.controlAccentColor().colorUsingColorSpace(NSColorSpace.genericRGBColorSpace());
+        NSColor accentColor = NSColor.controlAccentColor().colorUsingColorSpace(NSColorSpace.deviceRGBColorSpace());
 
         DoubleByReference red = new DoubleByReference();
         DoubleByReference green = new DoubleByReference();
