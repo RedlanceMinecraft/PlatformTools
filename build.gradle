@@ -5,7 +5,7 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "1.0.5"
+version = "1.0.6"
 group = "org.redlance"
 
 repositories {
@@ -20,7 +20,7 @@ dependencies {
     api("net.java.dev.jna:jna:5.17.0")
 
     // macOS
-    api("com.github.dima-dencep:jfa:f5dd036") {
+    api("com.github.dima-dencep:jfa:2f7d03970f") {
         exclude(group: "net.java.dev.jna")
     }
 }
