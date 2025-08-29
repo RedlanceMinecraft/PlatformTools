@@ -5,7 +5,7 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "1.0.6"
+version = "1.1.0"
 group = "org.redlance"
 
 repositories {
@@ -20,9 +20,7 @@ dependencies {
     api("net.java.dev.jna:jna:5.17.0")
 
     // macOS
-    api("com.github.dima-dencep:jfa:2f7d03970f") {
-        exclude(group: "net.java.dev.jna")
-    }
+    implementation api("ca.weblite:java-objc-bridge:1.1")
 }
 
 tasks.withType(JavaCompile).configureEach {

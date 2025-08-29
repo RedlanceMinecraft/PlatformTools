@@ -1,11 +1,10 @@
 package org.redlance.platformtools.impl.macos;
 
-import de.jangassen.jfa.ObjcToJava;
-import de.jangassen.jfa.appkit.NSObject;
-import de.jangassen.jfa.foundation.Foundation;
-import de.jangassen.jfa.foundation.ID;
+import ca.weblite.objc.RuntimeUtils;
+import com.sun.jna.Pointer;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformFileReferer;
+import org.redlance.platformtools.impl.macos.appkit.CoreFoundation;
 import org.redlance.platformtools.impl.macos.appkit.CoreServices;
 
 import java.util.ArrayList;
@@ -16,18 +15,24 @@ public class MacFileReferer implements PlatformFileReferer {
 
     @Override
     public @Nullable String getFileReferer(String path) {
-        ID mdItem = CoreServices.INSTANCE.MDItemCreate(null, Foundation.nsString(path));
-        ID attribute = CoreServices.INSTANCE.MDItemCopyAttribute(mdItem, Foundation.nsString(ATTRIBUTE_NAME));
-        if (attribute == null || attribute.equals(ID.NIL)) return null;
+        Pointer mdItem = CoreServices.INSTANCE.MDItemCreate(null, RuntimeUtils.str(path));
+        Pointer attribute = CoreServices.INSTANCE.MDItemCopyAttribute(mdItem, RuntimeUtils.str(ATTRIBUTE_NAME));
+        if (attribute == null || attribute.equals(Pointer.NULL)) return null;
 
-        List<NSObject> referrers = new ArrayList<>();
-        Foundation.foreachCFArray(attribute, id -> {
+        long count = CoreFoundation.INSTANCE.CFArrayGetCount(attribute);
+        if (count == 0) return null;
+
+        List<String> referrers = new ArrayList<>();
+        for (long i = 0; i < count; i++) {
+            Pointer itemPtr = CoreFoundation.INSTANCE.CFArrayGetValueAtIndex(attribute, i);
+            if (itemPtr == null) continue;
+
             try {
-                referrers.add(ObjcToJava.map(id, NSObject.class));
+                referrers.add(RuntimeUtils.msgString(itemPtr, "UTF8String"));
             } catch (Throwable ignored) {}
-        });
-        if (referrers.isEmpty()) return null;
+        }
 
-        return referrers.get(0).toString();
+        if (referrers.isEmpty()) return null;
+        return referrers.get(0);
     }
 }

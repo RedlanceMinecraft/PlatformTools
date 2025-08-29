@@ -1,6 +1,5 @@
 package org.redlance.platformtools.impl;
 
-import de.jangassen.jfa.appkit.NSHapticFeedbackManager;
 import com.sun.jna.Native;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
@@ -22,13 +21,13 @@ public class TestingApp extends JFrame {
 
         this.colorPanel = new JPanel();
         this.colorPanel.setBackground(initialColor);
-        this.colorPanel.addMouseMotionListener(new MouseMotionAdapter() {
+        /*this.colorPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
                 NSHapticFeedbackManager.defaultPerformer().performFeedbackPattern(0, 1);
             }
-        });
+        });*/
         add(this.colorPanel);
 
         JPanel controlsPanel = new JPanel();
