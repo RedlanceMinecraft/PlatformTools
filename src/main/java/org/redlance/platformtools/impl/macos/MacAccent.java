@@ -32,7 +32,7 @@ public class MacAccent implements PlatformAccent {
     }
 
     @Override
-    public void subscribeToChanges(@Nullable Long window, Consumer<Color> consumer) {
+    public void subscribeToChanges(Pointer window, Consumer<Color> consumer) {
         subscribeToNotificationChange("AppleColorPreferencesChangedNotification",
                 () -> consumer.accept(getAccent(null))
         );

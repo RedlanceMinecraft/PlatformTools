@@ -1,6 +1,7 @@
 package org.redlance.platformtools.impl;
 
 import com.sun.jna.Platform;
+import com.sun.jna.Pointer;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.impl.macos.MacAccent;
 import org.redlance.platformtools.impl.windows.WindowsAccent;
@@ -23,7 +24,7 @@ public class PlatformAccentImpl implements PlatformAccent {
     }
 
     @Override
-    public void subscribeToChanges(Long window, Consumer<Color> consumer) {
+    public void subscribeToChanges(Pointer window, Consumer<Color> consumer) {
         if (this.nativePlatformAccent == null) return;
         this.nativePlatformAccent.subscribeToChanges(window, consumer);
     }
