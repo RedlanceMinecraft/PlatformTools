@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.util.Collection;
 
 public class TestingApp extends JFrame {
     private final JPanel colorPanel;
@@ -59,8 +60,8 @@ public class TestingApp extends JFrame {
 
         if (result == JFileChooser.APPROVE_OPTION) {
             try {
-                String referrer = PlatformFileReferer.INSTANCE.getFileReferer(fileChooser.getSelectedFile());
-                this.referrerLabel.setText("Referrer: " + referrer);
+                Collection<String> referrer = PlatformFileReferer.INSTANCE.getFileReferer(fileChooser.getSelectedFile());
+                this.referrerLabel.setText("Referrer: " + String.join(", ", referrer));
                 System.out.println(referrer);
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
