@@ -4,10 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformFileReferer;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
@@ -19,37 +16,45 @@ import java.util.*;
  * - Google Chrome
  *
  * Workarounds implemented:
- * - Some archivers pass the path to the archive from which the file was extracted.
+ * - Default windows archiver pass the path to the archive from which the file was extracted.
  */
 public class WindowsFileReferer implements PlatformFileReferer {
     private static final Set<String> KEYS = Set.of("HostUrl", "ReferrerUrl", "LastWriterPackageFamilyName");
 
     @Override
     public @NotNull Set<String> getFileReferer(String path) throws IOException {
-        Properties props = new Properties();
-        try (Reader reader = new FileReader(path + ":Zone.Identifier", StandardCharsets.UTF_8)) {
-            props.load(reader);
-        } catch (FileNotFoundException | AccessDeniedException ex) {
-            return Collections.emptySet();
-        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(path + ":Zone.Identifier", StandardCharsets.UTF_8))) {
+            Set<String> referrers = new HashSet<>(KEYS.size());
 
-        Set<String> referrers = new HashSet<>(KEYS.size());
-        for (String key : KEYS) {
-            String value = props.getProperty(key);
-            if (value != null && !value.isBlank()) {
-                referrers.add(value);
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
+                if (line.startsWith(";") || line.startsWith("#")) continue;
+                if (line.startsWith("[") && line.endsWith("]")) continue;
 
-                try {
-                    String localPath = resolveLocalPath(value.trim());
-                    if (localPath != null) {
-                        referrers.addAll(getFileReferer(localPath));
+                int eq = line.indexOf('=');
+                if (eq <= 0) continue;
+
+                String key = line.substring(0, eq).trim();
+                String value = line.substring(eq + 1).trim();
+
+                if (KEYS.contains(key) && !value.isBlank()) {
+                    referrers.add(value);
+
+                    try {
+                        String localPath = resolveLocalPath(value.trim());
+                        if (localPath != null) referrers.addAll(getFileReferer(localPath));
+                    } catch (Throwable th) {
+                        th.printStackTrace();
                     }
-                } catch (Throwable th) {
-                    th.printStackTrace();
                 }
             }
+
+            return Collections.unmodifiableSet(referrers);
+        } catch (FileNotFoundException | AccessDeniedException e) {
+            return Collections.emptySet();
         }
-        return Collections.unmodifiableSet(referrers);
     }
 
     @Nullable
