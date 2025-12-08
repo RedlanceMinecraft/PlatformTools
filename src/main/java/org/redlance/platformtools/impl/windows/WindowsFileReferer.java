@@ -8,13 +8,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
-import java.net.URI;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
-import java.nio.file.FileSystemNotFoundException;
 import java.util.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * Confirmed to work on:
@@ -56,23 +53,17 @@ public class WindowsFileReferer implements PlatformFileReferer {
     }
 
     @Nullable
-    private static String resolveLocalPath(String v) {
-        if (v.regionMatches(true, 0, "file:", 0, 5)) {
-            try {
-                URI uri = URI.create(v);
-                Path path = Paths.get(uri);
-                return path.toString();
-            } catch (IllegalArgumentException | FileSystemNotFoundException | SecurityException e) {
-                return null;
+    private static String resolveLocalPath(String referrerUrl) {
+        if (referrerUrl.startsWith("file://")) {
+            String path = referrerUrl.substring(7);
+            if (path.startsWith("/") && path.length() > 2 && path.charAt(2) == ':') {
+                path = path.substring(1);
             }
+            return URLDecoder.decode(path, StandardCharsets.UTF_8);
+        } else if (referrerUrl.startsWith("\\\\") || referrerUrl.matches("^[A-Z]:[/\\\\].*")) {
+            return referrerUrl;
+
         }
-
-        if (v.startsWith("\\\\")) return v;
-
-        if (v.length() >= 2 && Character.isLetter(v.charAt(0)) && v.charAt(1) == ':') {
-            return v.replace('/', '\\');
-        }
-
         return null;
     }
 }
