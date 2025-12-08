@@ -33,6 +33,10 @@ public class TestingApp extends JFrame {
         JPanel controlsPanel = new JPanel();
         add(controlsPanel, BorderLayout.SOUTH);
 
+        JButton recreateButton = new JButton("Recreate");
+        recreateButton.addActionListener(this::onRecreate);
+        controlsPanel.add(recreateButton);
+
         JButton chooseFileButton = new JButton("Select file");
         chooseFileButton.addActionListener(this::onChooseFile);
         controlsPanel.add(chooseFileButton);
@@ -66,5 +70,17 @@ public class TestingApp extends JFrame {
                 throw new RuntimeException(ex);
             }
         }
+    }
+
+    private void onRecreate(ActionEvent e) {
+        JFrame frame = new JFrame("temp");
+        frame.setVisible(true);
+        dispose();
+        setVisible(true);
+        frame.dispose();
+
+        dispose();
+        setVisible(true);
+        PlatformAccent.INSTANCE.resubscribe();
     }
 }

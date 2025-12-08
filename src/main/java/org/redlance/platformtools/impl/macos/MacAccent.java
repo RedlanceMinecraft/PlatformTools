@@ -45,6 +45,11 @@ public class MacAccent implements PlatformAccent, Runnable {
     }
 
     @Override
+    public void resubscribe() {
+        // no-op
+    }
+
+    @Override
     public void subscribeToChanges(Consumer<Color> consumer) {
         this.consumers.add(consumer);
     }

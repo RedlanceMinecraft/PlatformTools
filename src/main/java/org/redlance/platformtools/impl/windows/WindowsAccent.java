@@ -51,7 +51,7 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
             if (uMsg == WM_NCDESTROY) {
                 ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this.originalWndProc);
                 this.originalWndProc = this.hwnd = null;
-                hookToAnyWindow();
+                resubscribe();
             }
         }
 
@@ -60,8 +60,8 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
 
     @Override
     public void subscribeToChanges(Consumer<Color> consumer) {
-        if (this.originalWndProc == null || this.hwnd == null) hookToAnyWindow();
         this.consumers.add(consumer);
+        resubscribe();
     }
 
     @Override
@@ -69,7 +69,10 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
         return this.consumers.remove(consumer);
     }
 
-    private void hookToAnyWindow() {
+    @Override
+    public void resubscribe() {
+        if (this.originalWndProc != null && this.hwnd != null) return;
+
         ExtendedUser32.INSTANCE.EnumWindows((hWnd, data) -> {
             IntByReference pidRef = new IntByReference();
             ExtendedUser32.INSTANCE.GetWindowThreadProcessId(hWnd, pidRef);
