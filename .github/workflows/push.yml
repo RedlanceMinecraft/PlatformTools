@@ -1,8 +1,12 @@
 name: Publish
 
 on:
- - workflow_dispatch
- - push
+  push:
+    branches:
+      - '**/stable'
+      - '**/backport'
+      - '**/snapshot'
+  workflow_dispatch:
 
 jobs:
   publish:
