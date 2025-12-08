@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.FileSystemNotFoundException;
 import java.util.*;
 import java.nio.file.Path;
@@ -31,7 +32,7 @@ public class WindowsFileReferer implements PlatformFileReferer {
         Properties props = new Properties();
         try (Reader reader = new FileReader(path + ":Zone.Identifier", StandardCharsets.UTF_8)) {
             props.load(reader);
-        } catch (FileNotFoundException ex) {
+        } catch (FileNotFoundException | AccessDeniedException ex) {
             return Collections.emptySet();
         }
 
