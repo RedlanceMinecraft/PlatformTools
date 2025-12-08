@@ -1,6 +1,5 @@
 package org.redlance.platformtools.impl;
 
-import com.sun.jna.Native;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 
@@ -46,7 +45,7 @@ public class TestingApp extends JFrame {
 
     public static void main(String[] args) {
         TestingApp testingApp = new TestingApp(PlatformAccent.INSTANCE.getAccent(() -> Color.BLUE));
-        PlatformAccent.INSTANCE.subscribeToChanges(Native.getWindowPointer(testingApp), testingApp::updateColor);
+        PlatformAccent.INSTANCE.subscribeToChanges(testingApp::updateColor);
     }
 
     public void updateColor(Color newColor) {
