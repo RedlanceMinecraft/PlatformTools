@@ -34,17 +34,19 @@ public class WinThemeListener implements StdCallLibrary.StdCallCallback {
 
     @SuppressWarnings("unused")
     public Pointer callback(Pointer hWnd, int uMsg, WPARAM wParam, WPARAM lParam) {
-        if (this.hwnd.equals(hWnd) && uMsg == WM_DWMCOLORIZATIONCOLORCHANGED) {
-            Color color = new Color(wParam.intValue(), true);
+        if (this.hwnd != null && this.hwnd.equals(hWnd)) {
+            if (uMsg == WM_DWMCOLORIZATIONCOLORCHANGED) {
+                Color color = new Color(wParam.intValue(), true);
 
-            for (Consumer<Color> consumer : this.consumers) {
-                consumer.accept(color);
+                for (Consumer<Color> consumer : this.consumers) {
+                    consumer.accept(color);
+                }
             }
-        }
 
-        if (hWnd.equals(hwnd) && uMsg == WM_NCDESTROY) {
-            ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this.originalWndProc);
-            this.originalWndProc = null;
+            if (uMsg == WM_NCDESTROY) {
+                ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this.originalWndProc);
+                this.originalWndProc = null;
+            }
         }
 
         return ExtendedUser32.INSTANCE.CallWindowProc(this.originalWndProc, hWnd, uMsg, wParam, lParam);
