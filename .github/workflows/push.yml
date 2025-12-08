@@ -3,9 +3,7 @@ name: Publish
 on:
   push:
     branches:
-      - '**/stable'
-      - '**/backport'
-      - '**/snapshot'
+      - 'main'
   workflow_dispatch:
 
 jobs:
