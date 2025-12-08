@@ -1,6 +1,5 @@
 package org.redlance.platformtools;
 
-import com.sun.jna.Pointer;
 import org.redlance.platformtools.impl.PlatformAccentImpl;
 
 import java.awt.*;
@@ -12,5 +11,7 @@ public interface PlatformAccent {
 
     Color getAccent(Supplier<Color> fallback);
 
-    void subscribeToChanges(Pointer window, Consumer<Color> consumer);
+    void resubscribe();
+    void subscribeToChanges(Consumer<Color> consumer);
+    boolean unsubscribeFromChanges(Consumer<Color> consumer);
 }

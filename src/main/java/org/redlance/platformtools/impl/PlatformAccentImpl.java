@@ -24,8 +24,20 @@ public class PlatformAccentImpl implements PlatformAccent {
     }
 
     @Override
-    public void subscribeToChanges(Pointer window, Consumer<Color> consumer) {
+    public void resubscribe() {
         if (this.nativePlatformAccent == null) return;
-        this.nativePlatformAccent.subscribeToChanges(window, consumer);
+        this.nativePlatformAccent.resubscribe();
+    }
+
+    @Override
+    public void subscribeToChanges(Consumer<Color> consumer) {
+        if (this.nativePlatformAccent == null) return;
+        this.nativePlatformAccent.subscribeToChanges(consumer);
+    }
+
+    @Override
+    public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
+        if (this.nativePlatformAccent == null) return false;
+        return this.nativePlatformAccent.unsubscribeFromChanges(consumer);
     }
 }

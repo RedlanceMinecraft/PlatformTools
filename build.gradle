@@ -5,7 +5,7 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "2.0.0"
+version = "3.0.0"
 group = "org.redlance"
 
 repositories {
@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     compileOnlyApi("org.jetbrains:annotations:24.0.0")
-    api("net.java.dev.jna:jna:5.17.0")
+    api("net.java.dev.jna:jna:5.18.1")
 
     // macOS
     implementation api("ca.weblite:java-objc-bridge:1.1")

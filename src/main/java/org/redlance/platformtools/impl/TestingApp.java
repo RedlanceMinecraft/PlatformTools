@@ -1,6 +1,5 @@
 package org.redlance.platformtools.impl;
 
-import com.sun.jna.Native;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 
@@ -34,6 +33,10 @@ public class TestingApp extends JFrame {
         JPanel controlsPanel = new JPanel();
         add(controlsPanel, BorderLayout.SOUTH);
 
+        JButton recreateButton = new JButton("Recreate");
+        recreateButton.addActionListener(this::onRecreate);
+        controlsPanel.add(recreateButton);
+
         JButton chooseFileButton = new JButton("Select file");
         chooseFileButton.addActionListener(this::onChooseFile);
         controlsPanel.add(chooseFileButton);
@@ -46,7 +49,7 @@ public class TestingApp extends JFrame {
 
     public static void main(String[] args) {
         TestingApp testingApp = new TestingApp(PlatformAccent.INSTANCE.getAccent(() -> Color.BLUE));
-        PlatformAccent.INSTANCE.subscribeToChanges(Native.getWindowPointer(testingApp), testingApp::updateColor);
+        PlatformAccent.INSTANCE.subscribeToChanges(testingApp::updateColor);
     }
 
     public void updateColor(Color newColor) {
@@ -67,5 +70,17 @@ public class TestingApp extends JFrame {
                 throw new RuntimeException(ex);
             }
         }
+    }
+
+    private void onRecreate(ActionEvent e) {
+        JFrame frame = new JFrame("temp");
+        frame.setVisible(true);
+        dispose();
+        setVisible(true);
+        frame.dispose();
+
+        dispose();
+        setVisible(true);
+        PlatformAccent.INSTANCE.resubscribe();
     }
 }
