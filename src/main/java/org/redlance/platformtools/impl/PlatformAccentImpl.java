@@ -28,4 +28,10 @@ public class PlatformAccentImpl implements PlatformAccent {
         if (this.nativePlatformAccent == null) return;
         this.nativePlatformAccent.subscribeToChanges(window, consumer);
     }
+
+    @Override
+    public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
+        if (this.nativePlatformAccent == null) return false;
+        return this.nativePlatformAccent.unsubscribeFromChanges(consumer);
+    }
 }

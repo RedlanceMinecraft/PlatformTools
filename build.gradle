@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     compileOnlyApi("org.jetbrains:annotations:24.0.0")
-    api("net.java.dev.jna:jna:5.17.0")
+    api("net.java.dev.jna:jna:5.18.1")
 
     // macOS
     implementation api("ca.weblite:java-objc-bridge:1.1")

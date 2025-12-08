@@ -13,4 +13,5 @@ public interface PlatformAccent {
     Color getAccent(Supplier<Color> fallback);
 
     void subscribeToChanges(Pointer window, Consumer<Color> consumer);
+    boolean unsubscribeFromChanges(Consumer<Color> consumer);
 }

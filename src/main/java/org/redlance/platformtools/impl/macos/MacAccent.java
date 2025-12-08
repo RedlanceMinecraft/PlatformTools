@@ -10,11 +10,19 @@ import com.sun.jna.ptr.DoubleByReference;
 import org.redlance.platformtools.PlatformAccent;
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class MacAccent implements PlatformAccent {
+public class MacAccent implements PlatformAccent, Runnable {
     protected static final Client CLIENT = Client.getInstance();
+
+    private final List<Consumer<Color>> consumers = new ArrayList<>();
+
+    public MacAccent() {
+        subscribeToNotificationChange("AppleColorPreferencesChangedNotification", this);
+    }
 
     @Override
     public Color getAccent(Supplier<Color> fallback) {
@@ -38,15 +46,26 @@ public class MacAccent implements PlatformAccent {
 
     @Override
     public void subscribeToChanges(Pointer window, Consumer<Color> consumer) {
-        subscribeToNotificationChange("AppleColorPreferencesChangedNotification",
-                () -> consumer.accept(getAccent(null))
-        );
+        this.consumers.add(consumer);
+    }
+
+    @Override
+    public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
+        return this.consumers.remove(consumer);
     }
 
     protected static void subscribeToNotificationChange(String notify, Runnable runnable) {
         NotificationObserver observer = new NotificationObserver(runnable);
         Proxy center = CLIENT.sendProxy("NSDistributedNotificationCenter", "defaultCenter");
         center.send("addObserver:selector:name:object:", observer.getPeer(), RuntimeUtils.sel("run"), notify, Pointer.NULL);
+    }
+
+    @Override
+    public void run() {
+        Color color = getAccent(null);
+        for (Consumer<Color> consumer : this.consumers) {
+            consumer.accept(color);
+        }
     }
 
     @SuppressWarnings("unused")

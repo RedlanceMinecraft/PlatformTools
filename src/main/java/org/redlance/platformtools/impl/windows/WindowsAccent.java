@@ -6,10 +6,16 @@ import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.impl.windows.jna.DwmApi;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class WindowsAccent implements PlatformAccent {
+    private final List<Consumer<Color>> consumers = new ArrayList<>();
+
+    private WinThemeListener listener;
+
     @Override
     public Color getAccent(Supplier<Color> fallback) {
         IntByReference colorization = new IntByReference();
@@ -24,6 +30,12 @@ public class WindowsAccent implements PlatformAccent {
 
     @Override
     public void subscribeToChanges(Pointer window, Consumer<Color> consumer) {
-        new WinThemeListener(window, consumer);
+        if (this.listener == null || this.listener.isDestroyed()) this.listener = new WinThemeListener(window, this.consumers);
+        this.consumers.add(consumer);
+    }
+
+    @Override
+    public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
+        return this.consumers.remove(consumer);
     }
 }

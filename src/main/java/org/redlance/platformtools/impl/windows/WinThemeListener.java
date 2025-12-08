@@ -7,40 +7,50 @@ import org.redlance.platformtools.impl.windows.jna.ExtendedUser32;
 import org.redlance.platformtools.impl.windows.jna.WPARAM;
 
 import java.awt.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class WinThemeListener implements StdCallLibrary.StdCallCallback {
+    private static final int GWLP_WNDPROC = -4;
+    private static final int WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320;
+    private static final int WM_NCDESTROY = 0x0082;
+
     private final Pointer hwnd;
-    private final Consumer<Color> consumer;
+    private final List<Consumer<Color>> consumers;
 
-    private final Pointer originalWndProc;
+    private Pointer originalWndProc;
 
-    public WinThemeListener(Pointer hwnd, Consumer<Color> consumer) {
+    public WinThemeListener(Pointer hwnd, List<Consumer<Color>> consumers) {
         this.hwnd = hwnd;
-        this.consumer = consumer;
+        this.consumers = consumers;
 
-        this.originalWndProc = ExtendedUser32.INSTANCE.GetWindowLongPtr(hwnd, -4 /* GWLP_WNDPROC  */);
-        Pointer result = ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, -4 /* GWLP_WNDPROC  */, this);
-        if (result == null) throw new IllegalStateException("Failed to set window proc hook. Error: " + Native.getLastError());
+        Pointer prev = ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this);
+        if (prev == null) {
+            int err = Native.getLastError();
+            throw new IllegalStateException("SetWindowLongPtr failed, error=" + err);
+        }
+        this.originalWndProc = prev;
     }
 
     @SuppressWarnings("unused")
     public Pointer callback(Pointer hWnd, int uMsg, WPARAM wParam, WPARAM lParam) {
-        if (this.hwnd.equals(hWnd)) {
-            switch (uMsg) {
-                /*case 0x001A, 0x031A -> { // WM_SETTINGCHANGE, WM_THEMECHANGED
-                    System.out.println("Theme change message received in hook " + uMsg);
-                }*/
+        if (this.hwnd.equals(hWnd) && uMsg == WM_DWMCOLORIZATIONCOLORCHANGED) {
+            Color color = new Color(wParam.intValue(), true);
 
-                case 0x0320 -> { // WM_DWMCOLORIZATIONCOLORCHANGED
-                    this.consumer.accept(new Color(wParam.intValue(), true));
-                }
+            for (Consumer<Color> consumer : this.consumers) {
+                consumer.accept(color);
             }
         }
 
-        if (this.originalWndProc != null) {
-            return ExtendedUser32.INSTANCE.CallWindowProc(originalWndProc, hWnd, uMsg, wParam, lParam);
+        if (hWnd.equals(hwnd) && uMsg == WM_NCDESTROY) {
+            ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this.originalWndProc);
+            this.originalWndProc = null;
         }
-        return ExtendedUser32.INSTANCE.DefWindowProc(hWnd, uMsg, wParam, lParam);
+
+        return ExtendedUser32.INSTANCE.CallWindowProc(this.originalWndProc, hWnd, uMsg, wParam, lParam);
+    }
+
+    public boolean isDestroyed() {
+        return this.originalWndProc == null;
     }
 }
