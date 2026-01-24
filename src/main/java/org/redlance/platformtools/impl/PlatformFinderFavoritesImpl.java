@@ -1,12 +1,13 @@
 package org.redlance.platformtools.impl;
 
 import com.sun.jna.Platform;
+import org.jetbrains.annotations.NotNull;
 import org.redlance.platformtools.PlatformFinderFavorites;
 import org.redlance.platformtools.impl.macos.MacFinderFavorites;
 import org.redlance.platformtools.impl.unsupported.UnsupportedPlatform;
 
 public class PlatformFinderFavoritesImpl implements PlatformFinderFavorites {
-    private final PlatformFinderFavorites nativePlatformFinder = switch (Platform.getOSType()) {
+    private final @NotNull PlatformFinderFavorites nativePlatformFinder = switch (Platform.getOSType()) {
         case Platform.MAC -> new MacFinderFavorites();
         default -> UnsupportedPlatform.INSTANCE;
     };

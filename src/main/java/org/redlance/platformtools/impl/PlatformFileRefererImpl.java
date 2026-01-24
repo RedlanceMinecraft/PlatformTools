@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Set;
 
 public class PlatformFileRefererImpl implements PlatformFileReferer {
-    private final PlatformFileReferer nativePlatformReferer = switch (Platform.getOSType()) {
+    private final @NotNull PlatformFileReferer nativePlatformReferer = switch (Platform.getOSType()) {
         case Platform.WINDOWS -> new WindowsFileReferer();
         case Platform.MAC -> new MacFileReferer();
         default -> UnsupportedPlatform.INSTANCE;

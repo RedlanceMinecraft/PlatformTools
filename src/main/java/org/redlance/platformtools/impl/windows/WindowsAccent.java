@@ -3,6 +3,7 @@ package org.redlance.platformtools.impl.windows;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
+import org.jetbrains.annotations.NotNull;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.impl.windows.jna.DwmApi;
 import org.redlance.platformtools.impl.windows.jna.ExtendedUser32;
@@ -25,7 +26,7 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
     private Pointer originalWndProc;
 
     @Override
-    public Color getAccent(Supplier<Color> fallback) {
+    public Color getAccent(@NotNull Supplier<Color> fallback) {
         IntByReference colorization = new IntByReference();
         IntByReference opaque = new IntByReference();
 

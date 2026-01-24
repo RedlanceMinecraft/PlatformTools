@@ -54,7 +54,7 @@ public class TestingApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        TestingApp testingApp = new TestingApp(PlatformAccent.INSTANCE.getAccent(() -> Color.BLUE));
+        TestingApp testingApp = new TestingApp(PlatformAccent.INSTANCE.getAccent());
         PlatformAccent.INSTANCE.subscribeToChanges(testingApp::updateColor);
     }
 

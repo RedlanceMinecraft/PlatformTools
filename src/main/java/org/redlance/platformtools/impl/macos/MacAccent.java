@@ -7,6 +7,7 @@ import ca.weblite.objc.RuntimeUtils;
 import ca.weblite.objc.annotations.Msg;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.DoubleByReference;
+import org.jetbrains.annotations.NotNull;
 import org.redlance.platformtools.PlatformAccent;
 
 import java.awt.Color;
@@ -25,7 +26,7 @@ public class MacAccent implements PlatformAccent, Runnable {
     private boolean isObserving = false;
 
     @Override
-    public Color getAccent(Supplier<Color> fallback) {
+    public Color getAccent(@NotNull Supplier<Color> fallback) {
         Proxy colorSpace = CLIENT.sendProxy("NSColorSpace", "deviceRGBColorSpace");
 
         Proxy accentColor = CLIENT.sendProxy("NSColor", "controlAccentColor")
@@ -71,7 +72,7 @@ public class MacAccent implements PlatformAccent, Runnable {
 
     @Override
     public void run() {
-        Color color = getAccent(null);
+        Color color = getAccent();
         for (Consumer<Color> consumer : this.consumers) {
             consumer.accept(color);
         }

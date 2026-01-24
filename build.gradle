@@ -5,7 +5,7 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "3.1.1"
+version = "3.1.2"
 group = "org.redlance"
 
 repositories {

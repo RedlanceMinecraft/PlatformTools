@@ -1,14 +1,27 @@
 package org.redlance.platformtools;
 
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.redlance.platformtools.impl.PlatformAccentImpl;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused") // API
 public interface PlatformAccent {
+    Color MACOS_DEFAULT_ACCENT = new Color(0, 122, 255);
     PlatformAccent INSTANCE = new PlatformAccentImpl();
+
+    /**
+     * Retrieves the current system accent color.
+     *
+     * @return The current system accent color, or {@link PlatformAccent#MACOS_DEFAULT_ACCENT}
+     */
+    @ApiStatus.NonExtendable
+    default Color getAccent() {
+        return getAccent(() -> MACOS_DEFAULT_ACCENT);
+    }
 
     /**
      * Retrieves the current system accent color.
@@ -16,7 +29,7 @@ public interface PlatformAccent {
      * @param fallback A supplier that provides a default color if the system accent color cannot be determined.
      * @return The current system accent color, or the color provided by the fallback supplier.
      */
-    Color getAccent(Supplier<Color> fallback);
+    Color getAccent(@NotNull Supplier<Color> fallback);
 
     /**
      * Re-subscribes the internal native listener to system events.
