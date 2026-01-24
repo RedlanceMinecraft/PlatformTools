@@ -1,6 +1,5 @@
 package org.redlance.platformtools.impl.windows;
 
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
@@ -9,7 +8,7 @@ import org.redlance.platformtools.impl.windows.jna.DwmApi;
 import org.redlance.platformtools.impl.windows.jna.ExtendedUser32;
 import org.redlance.platformtools.impl.windows.jna.WPARAM;
 
-import java.awt.*;
+import java.awt.Color;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
@@ -31,14 +30,16 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
         IntByReference opaque = new IntByReference();
 
         var result = DwmApi.INSTANCE.DwmGetColorizationColor(colorization, opaque);
-        if (result.intValue() == 0) {
-            return new Color(colorization.getValue());
+        if (result.intValue() == 0) { // S_OK
+            return new Color(colorization.getValue(), true);
         }
         return fallback.get();
     }
 
     @SuppressWarnings("unused")
     public Pointer callback(Pointer hWnd, int uMsg, WPARAM wParam, WPARAM lParam) {
+        Pointer nextProc = this.originalWndProc;
+
         if (this.hwnd != null && this.hwnd.equals(hWnd)) {
             if (uMsg == WM_DWMCOLORIZATIONCOLORCHANGED) {
                 Color color = new Color(wParam.intValue(), true);
@@ -49,13 +50,14 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
             }
 
             if (uMsg == WM_NCDESTROY) {
-                ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, this.originalWndProc);
+                ExtendedUser32.INSTANCE.SetWindowLongPtr(hwnd, GWLP_WNDPROC, nextProc);
                 this.originalWndProc = this.hwnd = null;
                 resubscribe();
             }
         }
 
-        return ExtendedUser32.INSTANCE.CallWindowProc(this.originalWndProc, hWnd, uMsg, wParam, lParam);
+        if (nextProc == null) return Pointer.NULL;
+        return ExtendedUser32.INSTANCE.CallWindowProc(nextProc, hWnd, uMsg, wParam, lParam);
     }
 
     @Override
@@ -70,20 +72,22 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
     }
 
     @Override
-    public void resubscribe() {
+    public synchronized void resubscribe() {
         if (this.originalWndProc != null && this.hwnd != null) return;
+        if (this.consumers.isEmpty()) return;
 
+        int currentPid = (int) ProcessHandle.current().pid();
         ExtendedUser32.INSTANCE.EnumWindows((hWnd, data) -> {
             IntByReference pidRef = new IntByReference();
             ExtendedUser32.INSTANCE.GetWindowThreadProcessId(hWnd, pidRef);
 
-            if (pidRef.getValue() == ProcessHandle.current().pid() && ExtendedUser32.INSTANCE.IsWindowVisible(hWnd)) {
-                this.hwnd = hWnd;
-
-                Pointer prev = ExtendedUser32.INSTANCE.SetWindowLongPtr(this.hwnd, GWLP_WNDPROC, this);
-                if (prev == null) throw new IllegalStateException("SetWindowLongPtr failed, error=" + Native.getLastError());
-                this.originalWndProc = prev;
-                return false;
+            if (pidRef.getValue() == currentPid && ExtendedUser32.INSTANCE.IsWindowVisible(hWnd)) {
+                Pointer prev = ExtendedUser32.INSTANCE.SetWindowLongPtr(hWnd, GWLP_WNDPROC, this);
+                if (prev != null) {
+                    this.hwnd = hWnd;
+                    this.originalWndProc = prev;
+                    return false;
+                }
             }
             return true;
         }, Pointer.NULL);
