@@ -6,7 +6,7 @@ plugins {
 }
 
 base.archivesName = "PlatformTools"
-version = "3.1.3"
+version = "3.1.4"
 group = "org.redlance"
 
 repositories {
@@ -21,7 +21,7 @@ dependencies {
     api("net.java.dev.jna:jna:5.18.1")
 
     // macOS
-    implementation api("ca.weblite:java-objc-bridge:1.1")
+    implementation("ca.weblite:java-objc-bridge:1.2")
 }
 
 def javaTarget = 17
@@ -50,6 +50,13 @@ downgradeJar {
     classpath = configurations.compileClasspath
 
     inputFile = tasks.jar.archiveFile
+}
+
+shadeDowngradedApi {
+    downgradeTo = JavaVersion.VERSION_1_8
+    shadePath {
+        return "org/redlance/platformtools/impl/"
+    }
     archiveClassifier.set("java8")
 }
 
@@ -60,7 +67,7 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact(tasks.downgradeJar) {
+            artifact(tasks.shadeDowngradedApi) {
                 classifier = "java8"
                 extension = "jar"
             }
