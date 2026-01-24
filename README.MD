@@ -24,10 +24,10 @@ repositories {
 
 dependencies {
     // For Java 17+ (Standard version)
-    implementation "org.redlance:platformtools:3.1.3"
+    implementation "org.redlance:platformtools:3.1.4"
 
     // For Java 8 (Downgraded version)
-    implementation("org.redlance:platformtools:3.1.3:java8")
+    implementation("org.redlance:platformtools:3.1.4:java8")
 }
 ```
 
@@ -43,7 +43,7 @@ dependencies {
 <dependency>
     <groupId>org.redlance</groupId>
     <artifactId>platformtools</artifactId>
-    <version>3.1.3</version>
+    <version>3.1.4</version>
 </dependency>
 ```
 
