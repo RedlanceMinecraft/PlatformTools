@@ -2,10 +2,12 @@ package org.redlance.platformtools.impl;
 
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
+import org.redlance.platformtools.PlatformFinderFavorites;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -32,6 +34,10 @@ public class TestingApp extends JFrame {
 
         JPanel controlsPanel = new JPanel();
         add(controlsPanel, BorderLayout.SOUTH);
+
+        JButton pinFolderButton = new JButton("Pin folder");
+        pinFolderButton.addActionListener(this::onPinFolder);
+        controlsPanel.add(pinFolderButton);
 
         JButton recreateButton = new JButton("Recreate");
         recreateButton.addActionListener(this::onRecreate);
@@ -70,6 +76,85 @@ public class TestingApp extends JFrame {
                 throw new RuntimeException(ex);
             }
         }
+    }
+
+    private void onPinFolder(ActionEvent e) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+
+        int result = fileChooser.showOpenDialog(this);
+
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile();
+            showPinDialog(selectedFile);
+        }
+    }
+
+    private void showPinDialog(File file) {
+        JDialog dialog = new JDialog(this, "Manage Favorites", true); // true = modal
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        // --- Status Panel ---
+        JLabel statusLabel = new JLabel("Loading...", SwingConstants.CENTER);
+        statusLabel.setFont(new Font("Dialog", Font.BOLD, 14));
+        dialog.add(statusLabel, BorderLayout.CENTER);
+
+        // --- Buttons Panel ---
+        JPanel buttonPanel = new JPanel(new FlowLayout());
+        JButton btnPin = new JButton("Pin");
+        JButton btnUnpin = new JButton("Unpin");
+
+        buttonPanel.add(btnPin);
+        buttonPanel.add(btnUnpin);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // --- UI Update Logic ---
+        Runnable updateStatus = () -> {
+            boolean isPinned = PlatformFinderFavorites.INSTANCE.isPinned(file.getAbsolutePath());
+
+            if (isPinned) {
+                statusLabel.setText("PINNED");
+                statusLabel.setForeground(Color.GREEN);
+            } else {
+                statusLabel.setText("NOT PINNED");
+                statusLabel.setForeground(Color.RED);
+            }
+        };
+
+        // --- Button Listeners ---
+        btnPin.addActionListener(event -> {
+            boolean success = PlatformFinderFavorites.INSTANCE.pin(
+                    file.getAbsolutePath(),
+                    file.isDirectory(),
+                    PlatformFinderFavorites.Position.LAST
+            );
+
+            // Set text color based on result
+            btnPin.setForeground(success ? Color.GREEN : Color.RED);
+
+            // Reset neighbor button color
+            btnUnpin.setForeground(Color.BLACK);
+
+            updateStatus.run();
+        });
+
+        btnUnpin.addActionListener(event -> {
+            boolean success = PlatformFinderFavorites.INSTANCE.unpin(file.getAbsolutePath());
+
+            // Set text color based on result
+            btnUnpin.setForeground(success ? Color.GREEN : Color.RED);
+
+            // Reset neighbor button color
+            btnPin.setForeground(Color.BLACK);
+
+            updateStatus.run();
+        });
+
+        // Initial status check
+        updateStatus.run();
+        dialog.setVisible(true);
     }
 
     private void onRecreate(ActionEvent e) {
