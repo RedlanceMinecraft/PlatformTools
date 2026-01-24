@@ -24,7 +24,7 @@ public class MacFileReferer implements PlatformFileReferer {
         if (attribute == null || attribute.equals(Pointer.NULL)) return Collections.emptySet();
 
         long count = CoreFoundation.INSTANCE.CFArrayGetCount(attribute);
-        if (count == 0) return Collections.emptySet();
+        if (count <= 0) return Collections.emptySet();
 
         Set<String> referrers = new HashSet<>();
         for (long i = 0; i < count; i++) {
