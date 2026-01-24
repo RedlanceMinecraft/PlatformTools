@@ -131,7 +131,7 @@ public class ReferrerExample {
 ## 🛠 System Requirements
 * **Java:** 8 or higher.
 * **Operating Systems:**
-* **macOS:** 10.13 (High Sierra) or newer (x86_64 / arm64).
+* **macOS:** 10.9 (Mavericks) or newer (x86_64 / arm64).
 * **Windows:** Windows 10 or Windows 11 (x64).
 
 

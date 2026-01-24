@@ -17,7 +17,11 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class MacAccent implements PlatformAccent, Runnable {
-    private static final String NOTIFICATION_NAME = "AppleColorPreferencesChangedNotification";
+    private static final String[] NOTIFICATION_NAMES = {
+            "AppleColorPreferencesChangedNotification", // macOS 10.14+
+            "AppleAquaColorVariantChanged", // macos 10.2+
+    };
+
     protected static final Client CLIENT = Client.getInstance();
 
     private final List<Consumer<Color>> consumers = new CopyOnWriteArrayList<>();
@@ -27,10 +31,23 @@ public class MacAccent implements PlatformAccent, Runnable {
 
     @Override
     public Color getAccent(@NotNull Supplier<Color> fallback) {
-        Proxy colorSpace = CLIENT.sendProxy("NSColorSpace", "deviceRGBColorSpace");
+        Proxy rawColor = null;
 
-        Proxy accentColor = CLIENT.sendProxy("NSColor", "controlAccentColor")
-                .sendProxy("colorUsingColorSpace:", colorSpace);
+        try { // macOS 10.14+
+            rawColor = CLIENT.sendProxy("NSColor", "controlAccentColor");
+        } catch (Throwable ignored) {}
+
+        if (rawColor == null) {
+            try { // macos 10.2+
+                rawColor = CLIENT.sendProxy("NSColor", "keyboardFocusIndicatorColor");
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (rawColor == null) return fallback.get();
+
+        Proxy colorSpace = CLIENT.sendProxy("NSColorSpace", "deviceRGBColorSpace");
+        Proxy accentColor = rawColor.sendProxy("colorUsingColorSpace:", colorSpace);
 
         DoubleByReference red = new DoubleByReference();
         DoubleByReference green = new DoubleByReference();
@@ -49,7 +66,11 @@ public class MacAccent implements PlatformAccent, Runnable {
     public void resubscribe() {
         if (this.isObserving || this.consumers.isEmpty()) return;
         Proxy center = CLIENT.sendProxy("NSDistributedNotificationCenter", "defaultCenter");
-        center.send("addObserver:selector:name:object:", observer.getPeer(), RuntimeUtils.sel("run"), NOTIFICATION_NAME, Pointer.NULL);
+        Pointer observerPeer = observer.getPeer();
+        Pointer selector = RuntimeUtils.sel("run");
+        for (String notificationName : NOTIFICATION_NAMES) {
+            center.send("addObserver:selector:name:object:", observerPeer, selector, notificationName, Pointer.NULL);
+        }
         this.isObserving = true;
     }
 
