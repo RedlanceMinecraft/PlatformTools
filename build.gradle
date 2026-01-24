@@ -1,11 +1,12 @@
 plugins {
+    id "xyz.wagyourtail.jvmdowngrader" version "1.3.6"
     id "maven-publish"
     id "java-library"
     id "java"
 }
 
 base.archivesName = "PlatformTools"
-version = "3.1.2"
+version = "3.1.3"
 group = "org.redlance"
 
 repositories {
@@ -23,9 +24,33 @@ dependencies {
     implementation api("ca.weblite:java-objc-bridge:1.1")
 }
 
+def javaTarget = 17
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
-    options.release.set 17
+    options.release.set(javaTarget)
+}
+
+jar {
+    manifest.attributes("Multi-Release": true)
+}
+
+downgradeJar {
+    dependsOn jar
+
+    def versions = []
+    for (int i = javaTarget; i >= 8; i--) {
+        versions.add(JavaVersion.toVersion(i))
+    }
+
+    multiReleaseOriginal = true
+    multiReleaseVersions = versions
+
+    downgradeTo = JavaVersion.VERSION_1_8
+    classpath = configurations.compileClasspath
+
+    inputFile = tasks.jar.archiveFile
+    archiveClassifier.set("java8")
 }
 
 java {
@@ -35,6 +60,11 @@ java {
 publishing {
     publications {
         mavenJava(MavenPublication) {
+            artifact(tasks.downgradeJar) {
+                classifier = "java8"
+                extension = "jar"
+            }
+
             artifactId = "platformtools"
 
             pom {
