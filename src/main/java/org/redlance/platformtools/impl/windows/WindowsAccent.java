@@ -10,8 +10,8 @@ import org.redlance.platformtools.impl.windows.jna.ExtendedUser32;
 import org.redlance.platformtools.impl.windows.jna.WPARAM;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -20,7 +20,7 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
     private static final int WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320;
     private static final int WM_NCDESTROY = 0x0082;
 
-    private final List<Consumer<Color>> consumers = new ArrayList<>();
+    private final List<Consumer<Color>> consumers = new CopyOnWriteArrayList<>();
 
     private Pointer hwnd;
     private Pointer originalWndProc;

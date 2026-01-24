@@ -20,23 +20,35 @@ public class MacFileReferer implements PlatformFileReferer {
     @Override
     public @NotNull Set<String> getFileReferer(String path) {
         Pointer mdItem = CoreServices.INSTANCE.MDItemCreate(null, RuntimeUtils.str(path));
-        Pointer attribute = CoreServices.INSTANCE.MDItemCopyAttribute(mdItem, RuntimeUtils.str(ATTRIBUTE_NAME));
-        if (attribute == null || attribute.equals(Pointer.NULL)) return Collections.emptySet();
+        if (mdItem == null) return Collections.emptySet();
 
-        long count = CoreFoundation.INSTANCE.CFArrayGetCount(attribute);
-        if (count <= 0) return Collections.emptySet();
-
-        Set<String> referrers = new HashSet<>();
-        for (long i = 0; i < count; i++) {
-            Pointer itemPtr = CoreFoundation.INSTANCE.CFArrayGetValueAtIndex(attribute, i);
-            if (itemPtr == null) continue;
+        try {
+            Pointer attribute = CoreServices.INSTANCE.MDItemCopyAttribute(mdItem, RuntimeUtils.str(ATTRIBUTE_NAME));
+            if (attribute == null || attribute.equals(Pointer.NULL)) return Collections.emptySet();
 
             try {
-                referrers.add(RuntimeUtils.msgString(itemPtr, "UTF8String"));
-            } catch (Throwable ignored) {}
-        }
+                long count = CoreFoundation.INSTANCE.CFArrayGetCount(attribute);
+                if (count <= 0) return Collections.emptySet();
 
-        if (referrers.isEmpty()) return Collections.emptySet();
-        return Collections.unmodifiableSet(referrers);
+                Set<String> referrers = new HashSet<>();
+                for (long i = 0; i < count; i++) {
+                    Pointer itemPtr = CoreFoundation.INSTANCE.CFArrayGetValueAtIndex(attribute, i);
+                    if (itemPtr == null) continue;
+
+                    try {
+                        String ref = RuntimeUtils.msgString(itemPtr, "UTF8String");
+                        if (ref != null && !ref.isBlank()) referrers.add(ref);
+                    } catch (Throwable ignored) {}
+                }
+
+                if (referrers.isEmpty()) return Collections.emptySet();
+                return Collections.unmodifiableSet(referrers);
+
+            } finally {
+                CoreServices.INSTANCE.CFRelease(attribute);
+            }
+        } finally {
+            CoreServices.INSTANCE.CFRelease(mdItem);
+        }
     }
 }
