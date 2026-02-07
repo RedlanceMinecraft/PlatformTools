@@ -3,7 +3,7 @@ package org.redlance.platformtools.impl;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
-import org.redlance.platformtools.PlatformProgressBar;
+import org.redlance.platformtools.PlatformProgressBars;
 
 import javax.swing.*;
 import java.awt.*;
@@ -36,6 +36,10 @@ public class TestingApp extends JFrame {
         JPanel controlsPanel = new JPanel();
         add(controlsPanel, BorderLayout.SOUTH);
 
+        JButton progressBarButton = new JButton("Progress Bar");
+        progressBarButton.addActionListener(this::onProgressBar);
+        controlsPanel.add(progressBarButton);
+
         JButton pinFolderButton = new JButton("Pin folder");
         pinFolderButton.addActionListener(this::onPinFolder);
         controlsPanel.add(pinFolderButton);
@@ -47,10 +51,6 @@ public class TestingApp extends JFrame {
         JButton chooseFileButton = new JButton("Select file");
         chooseFileButton.addActionListener(this::onChooseFile);
         controlsPanel.add(chooseFileButton);
-
-        JButton progressBarButton = new JButton("Progress Bar");
-        progressBarButton.addActionListener(this::onProgressBar);
-        controlsPanel.add(progressBarButton);
 
         this.referrerLabel = new JLabel("Referrer:");
         controlsPanel.add(this.referrerLabel);
@@ -179,29 +179,48 @@ public class TestingApp extends JFrame {
     }
 
     private void showProgressDialog() {
-        JDialog dialog = new JDialog(this, "Set Progress Bar Value", true); // true = modal
-        dialog.setSize(300, 150);
+        JDialog dialog = new JDialog(this, "Progress Bars Manager", false);
+        dialog.setSize(400, 300);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new BorderLayout());
 
-        PlatformProgressBar bar = PlatformProgressBar.INSTANCE.create(100);
+        JPanel barsPanel = new JPanel();
+        barsPanel.setLayout(new BoxLayout(barsPanel, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(barsPanel);
+        dialog.add(scrollPane, BorderLayout.CENTER);
 
-        JPanel progressPanel = new JPanel(new FlowLayout());
-        JSlider slider = new JSlider();
+        JButton addButton = new JButton("Add Progress Bar");
+        addButton.addActionListener(event -> {
+            PlatformProgressBars.PlatformProgressBar bar = PlatformProgressBars.INSTANCE.create();
+            bar.setMaxValue(100);
 
-        slider.addChangeListener(e -> {
-            bar.setValue(slider.getValue());
+            JPanel barPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            barPanel.setBorder(BorderFactory.createEtchedBorder());
+
+            JLabel label = new JLabel("Bar " + (barsPanel.getComponentCount() + 1) + ":");
+
+            JSlider slider = new JSlider(0, 100, 0);
+            slider.setPreferredSize(new Dimension(200, 30));
+            slider.addChangeListener(ev -> bar.setValue(slider.getValue()));
+
+            JButton removeButton = new JButton("X");
+            removeButton.addActionListener(ev -> {
+                bar.close();
+                barsPanel.remove(barPanel);
+                barsPanel.revalidate();
+                barsPanel.repaint();
+            });
+
+            barPanel.add(label);
+            barPanel.add(slider);
+            barPanel.add(removeButton);
+
+            barsPanel.add(barPanel);
+            barsPanel.revalidate();
+            barsPanel.repaint();
         });
 
-        bar.setValue(slider.getValue());
-
-        progressPanel.add(slider, BorderLayout.CENTER);
-        dialog.add(progressPanel);
-
-        SwingUtilities.invokeLater(() -> {
-            bar.setValue(slider.getValue());
-        });
-
+        dialog.add(addButton, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
 }

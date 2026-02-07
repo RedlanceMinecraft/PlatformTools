@@ -9,15 +9,21 @@ public class NSRect extends Structure implements Structure.ByValue {
     public static class NSPoint extends Structure {
         public double x;
         public double y;
+
         @Override
-        protected List<String> getFieldOrder() { return Arrays.asList("x", "y"); }
+        protected List<String> getFieldOrder() {
+            return Arrays.asList("x", "y");
+        }
     }
 
     public static class NSSize extends Structure {
         public double width;
         public double height;
+
         @Override
-        protected List<String> getFieldOrder() { return Arrays.asList("width", "height"); }
+        protected List<String> getFieldOrder() {
+            return Arrays.asList("width", "height");
+        }
     }
 
     public NSPoint origin = new NSPoint();

@@ -7,7 +7,7 @@ import org.redlance.platformtools.BasePlatformFeature;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
-import org.redlance.platformtools.PlatformProgressBar;
+import org.redlance.platformtools.PlatformProgressBars;
 
 import java.awt.Color;
 import java.util.Collections;
@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites, PlatformProgressBar, BasePlatformFeature {
+public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites, PlatformProgressBars, PlatformProgressBars.PlatformProgressBar, BasePlatformFeature {
     private static final Set<String> UNSUPPORTED_STRING = Collections.singleton(
             String.format("Unsupported platform: %s", Platform.getOSType())
     );
@@ -64,18 +64,29 @@ public final class UnsupportedPlatform implements PlatformAccent, PlatformFileRe
     }
 
     @Override
-    public PlatformProgressBar create(double maxValue) {
-        return null;
+    public PlatformProgressBar create() {
+        return this;
     }
 
     @Override
-    public void incrementBy(double progress) { }
+    public void display() {
+    }
 
     @Override
-    public void setMaxValue(double maxValue) { }
+    public void close() {
+    }
 
     @Override
-    public void setValue(double value) { }
+    public void incrementBy(double progress) {
+    }
+
+    @Override
+    public void setMaxValue(double maxValue) {
+    }
+
+    @Override
+    public void setValue(double value) {
+    }
 
     public boolean isAvailable() {
         return false;
