@@ -81,6 +81,16 @@ public interface PlatformProgressBars extends BasePlatformFeature {
          * @param value the current progress value (should be between 0 and maxValue)
          */
         void setValue(double value);
+
+        /**
+         * Sets whether the progress bar is in indeterminate mode.
+         * <p>
+         * In indeterminate mode, the progress bar shows an animated state
+         * indicating that work is in progress but the amount is unknown.
+         *
+         * @param indeterminate true for indeterminate mode, false for determinate
+         */
+        void setIndeterminate(boolean indeterminate);
     }
 
     /**

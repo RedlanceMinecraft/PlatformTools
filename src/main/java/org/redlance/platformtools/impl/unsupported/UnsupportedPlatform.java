@@ -88,6 +88,10 @@ public final class UnsupportedPlatform implements PlatformAccent, PlatformFileRe
     public void setValue(double value) {
     }
 
+    @Override
+    public void setIndeterminate(boolean indeterminate) {
+    }
+
     public boolean isAvailable() {
         return false;
     }

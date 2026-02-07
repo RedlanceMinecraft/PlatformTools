@@ -1,6 +1,7 @@
 package org.redlance.platformtools.impl.macos;
 
 import ca.weblite.objc.Proxy;
+import ca.weblite.objc.RuntimeUtils;
 import org.redlance.platformtools.PlatformProgressBars;
 import org.redlance.platformtools.impl.macos.appkit.NSRect;
 
@@ -18,7 +19,6 @@ public final class MacProgressBar implements PlatformProgressBars {
     private final Proxy dockTile;
     private final List<ProgressBar> bars = new ArrayList<>();
     private Proxy container;
-    private Proxy imageView;
 
     public MacProgressBar() {
         this.nsApp = MacAccent.CLIENT.sendProxy("NSApplication", "sharedApplication");
@@ -30,13 +30,11 @@ public final class MacProgressBar implements PlatformProgressBars {
         if (this.bars.size() >= MAX_BARS) throw new TooManyProgressBarsException(MAX_BARS);
 
         if (this.container == null) {
-            this.container = MacAccent.CLIENT.sendProxy("NSView", "alloc");
+            this.container = MacAccent.CLIENT.sendProxy("NSImageView", "alloc");
             this.container.send("initWithFrame:", new NSRect(0, 0, SIZE, SIZE));
-
-            this.imageView = MacAccent.CLIENT.sendProxy("NSImageView", "alloc");
-            this.imageView.send("initWithFrame:", new NSRect(0, 0, SIZE, SIZE));
-            this.container.send("addSubview:", this.imageView);
-
+            this.container.send("bind:toObject:withKeyPath:options:",
+                    RuntimeUtils.str("value"), this.nsApp, RuntimeUtils.str("applicationIconImage"), null
+            );
             this.dockTile.send("setContentView:", this.container);
         }
 
@@ -62,7 +60,6 @@ public final class MacProgressBar implements PlatformProgressBars {
     }
 
     private void refresh() {
-        this.imageView.send("setImage:", this.nsApp.sendProxy("applicationIconImage"));
         this.dockTile.send("display");
     }
 
@@ -73,8 +70,8 @@ public final class MacProgressBar implements PlatformProgressBars {
         ProgressBar() {
             this.indicator = MacAccent.CLIENT.sendProxy("NSProgressIndicator", "alloc");
             this.indicator.send("initWithFrame:", new NSRect(0, 0, 0, 0));
-            this.indicator.send("setIndeterminate:", false);
             this.indicator.send("setMinValue:", 0.0);
+            setIndeterminate(false);
         }
 
         @Override
@@ -93,12 +90,12 @@ public final class MacProgressBar implements PlatformProgressBars {
             bars.remove(this);
 
             if (bars.isEmpty()) {
-                dockTile.send("setContentView:", (Object) null);
-                dockTile.send("display");
-                imageView.send("release");
+                container.send("unbind:", RuntimeUtils.str("value"));
                 container.send("release");
-                imageView = null;
                 container = null;
+
+                dockTile.send("setContentView:", (Object) null);
+                nsApp.send("setApplicationIconImage:", nsApp.sendProxy("applicationIconImage"));
             } else {
                 updateLayout();
             }
@@ -122,6 +119,19 @@ public final class MacProgressBar implements PlatformProgressBars {
         public void setValue(double value) {
             if (this.closed) return;
             this.indicator.send("setDoubleValue:", value);
+            refresh();
+        }
+
+        @Override
+        public void setIndeterminate(boolean indeterminate) {
+            if (this.closed) return;
+            this.indicator.send("setIndeterminate:", indeterminate);
+            this.indicator.send("setUsesThreadedAnimation:", indeterminate);
+            if (indeterminate) {
+                this.indicator.send("startAnimation:", (Object) null);
+            } else {
+                this.indicator.send("stopAnimation:", (Object) null);
+            }
             refresh();
         }
     }
