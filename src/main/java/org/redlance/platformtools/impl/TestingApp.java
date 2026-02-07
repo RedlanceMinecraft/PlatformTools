@@ -3,6 +3,7 @@ package org.redlance.platformtools.impl;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
+import org.redlance.platformtools.PlatformProgressBar;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +18,7 @@ public class TestingApp extends JFrame {
 
     public TestingApp(Color initialColor) {
         setTitle("Color Window");
-        setSize(400, 300);
+        setSize(640, 480);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -46,6 +47,10 @@ public class TestingApp extends JFrame {
         JButton chooseFileButton = new JButton("Select file");
         chooseFileButton.addActionListener(this::onChooseFile);
         controlsPanel.add(chooseFileButton);
+
+        JButton progressBarButton = new JButton("Progress Bar");
+        progressBarButton.addActionListener(this::onProgressBar);
+        controlsPanel.add(progressBarButton);
 
         this.referrerLabel = new JLabel("Referrer:");
         controlsPanel.add(this.referrerLabel);
@@ -167,5 +172,36 @@ public class TestingApp extends JFrame {
         dispose();
         setVisible(true);
         PlatformAccent.INSTANCE.resubscribe();
+    }
+
+    private void onProgressBar(ActionEvent e) {
+        showProgressDialog();
+    }
+
+    private void showProgressDialog() {
+        JDialog dialog = new JDialog(this, "Set Progress Bar Value", true); // true = modal
+        dialog.setSize(300, 150);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        PlatformProgressBar bar = PlatformProgressBar.INSTANCE.create(100);
+
+        JPanel progressPanel = new JPanel(new FlowLayout());
+        JSlider slider = new JSlider();
+
+        slider.addChangeListener(e -> {
+            bar.setValue(slider.getValue());
+        });
+
+        bar.setValue(slider.getValue());
+
+        progressPanel.add(slider, BorderLayout.CENTER);
+        dialog.add(progressPanel);
+
+        SwingUtilities.invokeLater(() -> {
+            bar.setValue(slider.getValue());
+        });
+
+        dialog.setVisible(true);
     }
 }
