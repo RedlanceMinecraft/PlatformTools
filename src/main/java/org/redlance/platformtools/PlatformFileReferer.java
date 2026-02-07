@@ -16,7 +16,7 @@ import java.util.Set;
  * which stores the URLs from which a file was downloaded.
  */
 @SuppressWarnings("unused") // API
-public interface PlatformFileReferer {
+public interface PlatformFileReferer extends BasePlatformFeature {
     PlatformFileReferer INSTANCE = new PlatformFileRefererImpl();
 
     /**

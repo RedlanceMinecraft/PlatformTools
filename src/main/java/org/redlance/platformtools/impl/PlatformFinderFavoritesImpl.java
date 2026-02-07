@@ -26,4 +26,9 @@ public class PlatformFinderFavoritesImpl implements PlatformFinderFavorites {
     public boolean unpin(String path) {
         return this.nativePlatformFinder.unpin(path);
     }
+
+    @Override
+    public boolean isAvailable() {
+        return this.nativePlatformFinder.isAvailable();
+    }
 }

@@ -21,4 +21,9 @@ public class PlatformFileRefererImpl implements PlatformFileReferer {
     public @NotNull Set<String> getFileReferer(String path) throws IOException {
         return this.nativePlatformReferer.getFileReferer(path);
     }
+
+    @Override
+    public boolean isAvailable() {
+        return this.nativePlatformReferer.isAvailable();
+    }
 }

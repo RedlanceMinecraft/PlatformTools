@@ -37,4 +37,9 @@ public class PlatformAccentImpl implements PlatformAccent {
     public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
         return this.nativePlatformAccent.unsubscribeFromChanges(consumer);
     }
+
+    @Override
+    public boolean isAvailable() {
+        return this.nativePlatformAccent.isAvailable();
+    }
 }

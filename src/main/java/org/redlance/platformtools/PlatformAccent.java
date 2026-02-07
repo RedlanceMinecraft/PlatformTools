@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 @SuppressWarnings("unused") // API
-public interface PlatformAccent {
+public interface PlatformAccent extends BasePlatformFeature {
     Color MACOS_DEFAULT_ACCENT = new Color(0, 122, 255);
     PlatformAccent INSTANCE = new PlatformAccentImpl();
 

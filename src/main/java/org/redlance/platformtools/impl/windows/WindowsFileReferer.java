@@ -71,4 +71,9 @@ public class WindowsFileReferer implements PlatformFileReferer {
         }
         return null;
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }
