@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
+import org.redlance.platformtools.PlatformProgressBar;
 
 import java.awt.Color;
 import java.util.Collections;
@@ -13,7 +14,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites {
+public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites, PlatformProgressBar {
     private static final Set<String> UNSUPPORTED_STRING = Collections.singleton(
             String.format("Unsupported platform: %s", Platform.getOSType())
     );
@@ -60,4 +61,18 @@ public final class UnsupportedPlatform implements PlatformAccent, PlatformFileRe
     public boolean unsubscribeFromChanges(Consumer<Color> consumer) {
         return false;
     }
+
+    @Override
+    public PlatformProgressBar create(double maxValue) {
+        return null;
+    }
+
+    @Override
+    public void incrementBy(double progress) { }
+
+    @Override
+    public void setMaxValue(double maxValue) { }
+
+    @Override
+    public void setValue(double value) { }
 }
