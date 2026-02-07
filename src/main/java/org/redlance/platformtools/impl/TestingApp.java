@@ -3,6 +3,7 @@ package org.redlance.platformtools.impl;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
+import org.redlance.platformtools.PlatformProgressBars;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,7 +18,7 @@ public class TestingApp extends JFrame {
 
     public TestingApp(Color initialColor) {
         setTitle("Color Window");
-        setSize(400, 300);
+        setSize(640, 480);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -34,6 +35,10 @@ public class TestingApp extends JFrame {
 
         JPanel controlsPanel = new JPanel();
         add(controlsPanel, BorderLayout.SOUTH);
+
+        JButton progressBarButton = new JButton("Progress Bar");
+        progressBarButton.addActionListener(this::onProgressBar);
+        controlsPanel.add(progressBarButton);
 
         JButton pinFolderButton = new JButton("Pin folder");
         pinFolderButton.addActionListener(this::onPinFolder);
@@ -167,5 +172,55 @@ public class TestingApp extends JFrame {
         dispose();
         setVisible(true);
         PlatformAccent.INSTANCE.resubscribe();
+    }
+
+    private void onProgressBar(ActionEvent e) {
+        showProgressDialog();
+    }
+
+    private void showProgressDialog() {
+        JDialog dialog = new JDialog(this, "Progress Bars Manager", false);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        JPanel barsPanel = new JPanel();
+        barsPanel.setLayout(new BoxLayout(barsPanel, BoxLayout.Y_AXIS));
+        JScrollPane scrollPane = new JScrollPane(barsPanel);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+
+        JButton addButton = new JButton("Add Progress Bar");
+        addButton.addActionListener(event -> {
+            PlatformProgressBars.PlatformProgressBar bar = PlatformProgressBars.INSTANCE.create();
+            bar.setMaxValue(100);
+
+            JPanel barPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+            barPanel.setBorder(BorderFactory.createEtchedBorder());
+
+            JLabel label = new JLabel("Bar " + (barsPanel.getComponentCount() + 1) + ":");
+
+            JSlider slider = new JSlider(0, 100, 0);
+            slider.setPreferredSize(new Dimension(200, 30));
+            slider.addChangeListener(ev -> bar.setValue(slider.getValue()));
+
+            JButton removeButton = new JButton("X");
+            removeButton.addActionListener(ev -> {
+                bar.close();
+                barsPanel.remove(barPanel);
+                barsPanel.revalidate();
+                barsPanel.repaint();
+            });
+
+            barPanel.add(label);
+            barPanel.add(slider);
+            barPanel.add(removeButton);
+
+            barsPanel.add(barPanel);
+            barsPanel.revalidate();
+            barsPanel.repaint();
+        });
+
+        dialog.add(addButton, BorderLayout.SOUTH);
+        dialog.setVisible(true);
     }
 }

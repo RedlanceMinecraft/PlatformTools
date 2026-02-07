@@ -10,6 +10,9 @@
 * **[File Origin Metadata (Windows & macOS)](#3-file-origin--referrer):** Retrieve the source URL of downloaded files.
     * **macOS:** Reads `kMDItemWhereFroms` metadata.
     * **Windows:** Reads **Alternate Data Streams (ADS)**, specifically `Zone.Identifier`.
+* **[Taskbar Progress Bars](#4-taskbar-progress-bars):** Display progress indicators on the taskbar/dock icon.
+    * Supports multiple stacked progress bars (up to 8).
+    * *Note: Windows taskbar support is planned for future releases.*
 * **Java 8 Compatible:** Built on Java 17 but distributed with a Java 8 compatible version (Multi-Release JAR).
 
 ## 📦 Installation
@@ -114,7 +117,7 @@ public class ReferrerExample {
     public void printOrigin(File file) {
         try {
             Set<String> referrers = PlatformFileReferer.INSTANCE.getFileReferer(file);
-            
+
             if (!referrers.isEmpty()) {
                 System.out.println("File downloaded from:");
                 referrers.forEach(System.out::println);
@@ -124,6 +127,46 @@ public class ReferrerExample {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+}
+```
+
+### 4. Taskbar Progress Bars
+Display progress indicators on the taskbar/dock icon. Supports multiple stacked progress bars.
+
+> **Note:** Windows taskbar support is currently in development. On Windows, these methods will currently perform no action.
+
+```java
+import org.redlance.platformtools.PlatformProgressBars;
+import org.redlance.platformtools.PlatformProgressBars.PlatformProgressBar;
+
+public class ProgressExample {
+    public void downloadFile() {
+        // Create a progress bar
+        try (PlatformProgressBar progress = PlatformProgressBars.INSTANCE.create()) {
+            progress.setMaxValue(100);
+
+            for (int i = 0; i <= 100; i++) {
+                progress.setValue(i);
+                Thread.sleep(50);
+            }
+        } // Automatically closes and removes from dock
+    }
+
+    public void multipleProgressBars() {
+        // Create multiple progress bars (up to 8)
+        PlatformProgressBar bar1 = PlatformProgressBars.INSTANCE.create();
+        PlatformProgressBar bar2 = PlatformProgressBars.INSTANCE.create();
+
+        bar1.setMaxValue(100);
+        bar2.setMaxValue(50);
+
+        bar1.setValue(75);
+        bar2.setValue(25);
+
+        // Clean up when done
+        bar1.close();
+        bar2.close();
     }
 }
 ```
