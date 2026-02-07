@@ -51,4 +51,9 @@ public class MacFileReferer implements PlatformFileReferer {
             CoreServices.INSTANCE.CFRelease(mdItem);
         }
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }

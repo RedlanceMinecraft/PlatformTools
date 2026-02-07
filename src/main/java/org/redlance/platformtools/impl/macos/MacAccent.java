@@ -113,4 +113,9 @@ public class MacAccent implements PlatformAccent, Runnable {
             this.runnable.run();
         }
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }

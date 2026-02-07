@@ -93,4 +93,9 @@ public class WindowsAccent implements PlatformAccent, StdCallLibrary.StdCallCall
             return true;
         }, Pointer.NULL);
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }

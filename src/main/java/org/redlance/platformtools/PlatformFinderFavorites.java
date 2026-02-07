@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @SuppressWarnings("unused") // API
-public interface PlatformFinderFavorites {
+public interface PlatformFinderFavorites extends BasePlatformFeature {
     PlatformFinderFavorites INSTANCE = new PlatformFinderFavoritesImpl();
 
     /**

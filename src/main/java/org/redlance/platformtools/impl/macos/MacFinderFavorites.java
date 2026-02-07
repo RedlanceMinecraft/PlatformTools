@@ -136,4 +136,9 @@ public final class MacFinderFavorites implements PlatformFinderFavorites {
 
         return null;
     }
+
+    @Override
+    public boolean isAvailable() {
+        return true;
+    }
 }

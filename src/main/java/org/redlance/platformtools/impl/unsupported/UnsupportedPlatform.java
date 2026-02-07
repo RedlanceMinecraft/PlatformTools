@@ -3,6 +3,7 @@ package org.redlance.platformtools.impl.unsupported;
 import com.sun.jna.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.redlance.platformtools.BasePlatformFeature;
 import org.redlance.platformtools.PlatformAccent;
 import org.redlance.platformtools.PlatformFileReferer;
 import org.redlance.platformtools.PlatformFinderFavorites;
@@ -14,7 +15,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites, PlatformProgressBar {
+public final class UnsupportedPlatform implements PlatformAccent, PlatformFileReferer, PlatformFinderFavorites, PlatformProgressBar, BasePlatformFeature {
     private static final Set<String> UNSUPPORTED_STRING = Collections.singleton(
             String.format("Unsupported platform: %s", Platform.getOSType())
     );
@@ -75,4 +76,8 @@ public final class UnsupportedPlatform implements PlatformAccent, PlatformFileRe
 
     @Override
     public void setValue(double value) { }
+
+    public boolean isAvailable() {
+        return false;
+    }
 }
