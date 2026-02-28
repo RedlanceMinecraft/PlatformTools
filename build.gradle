@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compileOnlyApi("org.jetbrains:annotations:24.0.0")
+    compileOnlyApi("org.jetbrains:annotations:24.1.0")
     api("net.java.dev.jna:jna:5.18.1")
 
     // macOS
