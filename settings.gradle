@@ -13,3 +13,10 @@ pluginManagement {
 }
 
 rootProject.name = "platformtools"
+
+include "common"
+include "accent"
+include "referer"
+include "favorites"
+include "progress"
+include "testing"

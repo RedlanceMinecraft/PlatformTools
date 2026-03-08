@@ -1,0 +1,4 @@
+dependencies {
+    api("net.java.dev.jna:jna:5.18.1")
+    api("ca.weblite:java-objc-bridge:1.2")
+}
