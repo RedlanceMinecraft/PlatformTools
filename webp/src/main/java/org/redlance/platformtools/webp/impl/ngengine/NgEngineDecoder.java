@@ -1,6 +1,7 @@
 package org.redlance.platformtools.webp.impl.ngengine;
 
 import org.jetbrains.annotations.Nullable;
+import org.ngengine.webp.decoder.DecodedWebP;
 import org.ngengine.webp.decoder.WebPDecoder;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
@@ -32,7 +33,7 @@ public final class NgEngineDecoder implements PlatformWebPDecoder {
     @Override
     public DecodedImage decode(byte[] webpData) {
         try {
-            var decoded = WebPDecoder.decode(webpData);
+            DecodedWebP decoded = WebPDecoder.decode(webpData);
             ByteBuffer rgba = decoded.rgba;
             rgba.rewind();
 
@@ -55,8 +56,8 @@ public final class NgEngineDecoder implements PlatformWebPDecoder {
     @Override
     public int[] getInfo(byte[] webpData) {
         try {
-            var decoded = WebPDecoder.decode(webpData);
-            return new int[]{decoded.width, decoded.height};
+            DecodedWebP decoded = WebPDecoder.decode(webpData);
+            return new int[] {decoded.width, decoded.height};
         } catch (Exception e) {
             throw new IllegalStateException("ngengine WebP getInfo failed", e);
         }

@@ -7,8 +7,7 @@ import org.redlance.platformtools.referer.PlatformFileReferer;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
-import org.redlance.platformtools.webp.impl.imageio.JavaImageIODecoder;
-import org.redlance.platformtools.webp.impl.imageio.JavaImageIOEncoder;
+import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPEncoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
@@ -307,12 +306,10 @@ public class TestingApp extends JFrame {
             }
 
             try {
-                JavaImageIODecoder iioDec = JavaImageIODecoder.tryCreate();
-                JavaImageIOEncoder iioEnc = JavaImageIOEncoder.tryCreate();
-                log.append("  Java ImageIO: decode " + (iioDec != null ? "OK" : "no WebP plugin")
-                        + ", encode " + (iioEnc != null ? "OK" : "no WebP plugin") + "\n");
+                NgEngineDecoder ngDec = NgEngineDecoder.tryCreate();
+                log.append("  ngengine: decode " + (ngDec != null ? "OK" : "not found") + "\n");
             } catch (Throwable t) {
-                log.append("  Java ImageIO: ERROR " + t + "\n");
+                log.append("  ngengine: ERROR " + t + "\n");
             }
 
             log.append("\n");
