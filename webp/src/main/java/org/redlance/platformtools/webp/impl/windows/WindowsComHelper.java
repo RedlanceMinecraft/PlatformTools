@@ -148,9 +148,9 @@ public final class WindowsComHelper {
                 (byte) 0x37, (byte) 0xca, (byte) 0x7c, (byte) 0xf3);
     }
 
-    static MemorySegment guidPixelFormat32bppRGBA(Arena arena) {
-        return writeGuid(arena, 0xf5c7ad2d, (short) 0x6a8d, (short) 0x43dd,
-                (byte) 0xa7, (byte) 0xa8, (byte) 0xa2, (byte) 0x99,
-                (byte) 0x35, (byte) 0x26, (byte) 0x1a, (byte) 0xe9);
+    static MemorySegment guidPixelFormat32bppBGRA(Arena arena) {
+        return writeGuid(arena, 0x6fddc324, (short) 0x4e03, (short) 0x4bfe,
+                (byte) 0xb1, (byte) 0x85, (byte) 0x3d, (byte) 0x77,
+                (byte) 0x76, (byte) 0x8d, (byte) 0xc9, (byte) 0x0e);
     }
 }

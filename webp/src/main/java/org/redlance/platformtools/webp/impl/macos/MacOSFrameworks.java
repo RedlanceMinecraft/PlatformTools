@@ -8,7 +8,10 @@ import java.lang.invoke.MethodHandle;
 public final class MacOSFrameworks {
     static final int kCFStringEncodingUTF8 = 0x08000100;
     static final int kCGImageAlphaLast = 3;
+    static final int kCGImageAlphaFirst = 4;
+    static final int kCGImageAlphaPremultipliedFirst = 2;
     static final int kCGImageAlphaPremultipliedLast = 1;
+    static final int kCGBitmapByteOrder32Little = 2 << 12;
     static final int kCFNumberFloat64Type = 13;
 
     final SymbolLookup lookup;
@@ -97,15 +100,17 @@ public final class MacOSFrameworks {
         );
     }
 
-    static void unpremultiplyAlpha(byte[] rgba) {
-        for (int i = 0; i < rgba.length; i += 4) {
-            int a = rgba[i + 3] & 0xFF;
+    static void unpremultiplyAlpha(int[] argb) {
+        for (int i = 0; i < argb.length; i++) {
+            int pixel = argb[i];
+            int a = (pixel >> 24) & 0xFF;
             if (a == 0) {
-                rgba[i] = rgba[i + 1] = rgba[i + 2] = 0;
+                argb[i] = 0;
             } else if (a < 255) {
-                rgba[i]     = (byte) Math.min(255, ((rgba[i] & 0xFF) * 255 + a / 2) / a);
-                rgba[i + 1] = (byte) Math.min(255, ((rgba[i + 1] & 0xFF) * 255 + a / 2) / a);
-                rgba[i + 2] = (byte) Math.min(255, ((rgba[i + 2] & 0xFF) * 255 + a / 2) / a);
+                int r = Math.min(255, (((pixel >> 16) & 0xFF) * 255 + a / 2) / a);
+                int g = Math.min(255, (((pixel >> 8) & 0xFF) * 255 + a / 2) / a);
+                int b = Math.min(255, ((pixel & 0xFF) * 255 + a / 2) / a);
+                argb[i] = (a << 24) | (r << 16) | (g << 8) | b;
             }
         }
     }

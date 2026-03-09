@@ -2,11 +2,12 @@ package org.redlance.platformtools.webp.impl.imageio;
 
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 
+import org.redlance.platformtools.webp.decoder.DecodedImage;
+
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Iterator;
@@ -41,9 +42,8 @@ public final class JavaImageIODecoder implements PlatformWebPDecoder {
 
             int w = img.getWidth();
             int h = img.getHeight();
-            byte[] rgba = toRGBA(img, w, h);
 
-            return new DecodedImage(rgba, w, h);
+            return new DecodedImage(img.getRGB(0, 0, w, h, null, 0, w), w, h);
         } catch (IOException e) {
             throw new RuntimeException("Java ImageIO decode failed", e);
         }
@@ -70,36 +70,19 @@ public final class JavaImageIODecoder implements PlatformWebPDecoder {
     }
 
     @Override
+    public boolean isWebP(byte[] data) {
+        if (data == null || data.length == 0) return false;
+
+        try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(data))) {
+            return iis != null && ImageIO.getImageReaders(iis).hasNext();
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    @Override
     public boolean isAvailable() {
         return true;
     }
 
-    private static byte[] toRGBA(BufferedImage img, int w, int h) {
-        if (img.getType() == BufferedImage.TYPE_4BYTE_ABGR) {
-            byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-            byte[] rgba = new byte[w * h * 4];
-            for (int i = 0; i < w * h; i++) {
-                int si = i * 4;
-                rgba[si]     = abgr[si + 3]; // R
-                rgba[si + 1] = abgr[si + 2]; // G
-                rgba[si + 2] = abgr[si + 1]; // B
-                rgba[si + 3] = abgr[si];     // A
-            }
-            return rgba;
-        }
-
-        // Generic path: convert any type via getRGB
-        byte[] rgba = new byte[w * h * 4];
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                int argb = img.getRGB(x, y);
-                int i = (y * w + x) * 4;
-                rgba[i]     = (byte) ((argb >> 16) & 0xFF); // R
-                rgba[i + 1] = (byte) ((argb >> 8) & 0xFF);  // G
-                rgba[i + 2] = (byte) (argb & 0xFF);         // B
-                rgba[i + 3] = (byte) ((argb >> 24) & 0xFF); // A
-            }
-        }
-        return rgba;
-    }
 }

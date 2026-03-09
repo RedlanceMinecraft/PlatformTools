@@ -4,6 +4,7 @@ import org.redlance.platformtools.accent.PlatformAccent;
 import org.redlance.platformtools.favorites.PlatformFinderFavorites;
 import org.redlance.platformtools.progress.PlatformProgressBars;
 import org.redlance.platformtools.referer.PlatformFileReferer;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
 import org.redlance.platformtools.webp.impl.imageio.JavaImageIODecoder;
@@ -323,38 +324,37 @@ public class TestingApp extends JFrame {
         encodeBtn.setEnabled(encodeAvailable);
         encodeBtn.addActionListener(event -> {
             int w = 256, h = 256;
-            byte[] rgba = new byte[w * h * 4];
+            int[] argb = new int[w * h];
             java.util.Random rng = new java.util.Random(42);
             for (int y = 0; y < h; y++) {
                 for (int x = 0; x < w; x++) {
-                    int i = (y * w + x) * 4;
-                    rgba[i]     = (byte) Math.min(255, (x + rng.nextInt(32)) & 0xFF);
-                    rgba[i + 1] = (byte) Math.min(255, (y + rng.nextInt(32)) & 0xFF);
-                    rgba[i + 2] = (byte) (rng.nextInt(256));
-                    rgba[i + 3] = (byte) 255;
+                    int r = Math.min(255, (x + rng.nextInt(32)) & 0xFF);
+                    int g = Math.min(255, (y + rng.nextInt(32)) & 0xFF);
+                    int b = rng.nextInt(256);
+                    argb[y * w + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
                 }
             }
 
             log.append("Encode 256x256 noisy gradient:\n");
-            log.append("  Raw RGBA:  " + rgba.length + " bytes\n");
+            log.append("  Raw ARGB:  " + argb.length + " pixels\n");
 
             byte[] lossless = null;
             try {
-                lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(rgba, w, h);
+                lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(argb, w, h);
                 log.append("  Lossless:  " + lossless.length + " bytes\n");
             } catch (Exception ex) {
                 log.append("  Lossless:  FAILED: " + ex.getMessage() + "\n");
             }
 
             try {
-                byte[] lossy75 = PlatformWebPEncoder.INSTANCE.encodeLossy(rgba, w, h, 0.75f);
+                byte[] lossy75 = PlatformWebPEncoder.INSTANCE.encodeLossy(argb, w, h, 0.75f);
                 log.append("  Lossy 75%%: " + lossy75.length + " bytes\n");
             } catch (Exception ex) {
                 log.append("  Lossy 75%%: FAILED: " + ex.getMessage() + "\n");
             }
 
             try {
-                byte[] lossy50 = PlatformWebPEncoder.INSTANCE.encodeLossy(rgba, w, h, 0.50f);
+                byte[] lossy50 = PlatformWebPEncoder.INSTANCE.encodeLossy(argb, w, h, 0.50f);
                 log.append("  Lossy 50%%: " + lossy50.length + " bytes\n");
             } catch (Exception ex) {
                 log.append("  Lossy 50%%: FAILED: " + ex.getMessage() + "\n");
@@ -363,9 +363,9 @@ public class TestingApp extends JFrame {
             // Roundtrip test
             if (lossless != null && decodeAvailable) {
                 try {
-                    PlatformWebPDecoder.DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(lossless);
+                    DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(lossless);
                     log.append("  Roundtrip: " + decoded.width() + "x" + decoded.height()
-                            + " (" + decoded.rgba().length + " bytes RGBA)\n");
+                            + " (" + decoded.argb().length + " pixels)\n");
                 } catch (Exception ex) {
                     log.append("  Roundtrip: FAILED: " + ex.getMessage() + "\n");
                 }
@@ -394,22 +394,12 @@ public class TestingApp extends JFrame {
                 }
 
                 try {
-                    PlatformWebPDecoder.DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(webpData);
+                    DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(webpData);
                     log.append("  Decoded: " + decoded.width() + "x" + decoded.height() + "\n");
 
                     // Show decoded image
                     BufferedImage img = new BufferedImage(decoded.width(), decoded.height(), BufferedImage.TYPE_INT_ARGB);
-                    byte[] pixels = decoded.rgba();
-                    for (int y = 0; y < decoded.height(); y++) {
-                        for (int x = 0; x < decoded.width(); x++) {
-                            int idx = (y * decoded.width() + x) * 4;
-                            int r = pixels[idx] & 0xFF;
-                            int g = pixels[idx + 1] & 0xFF;
-                            int b = pixels[idx + 2] & 0xFF;
-                            int a = pixels[idx + 3] & 0xFF;
-                            img.setRGB(x, y, (a << 24) | (r << 16) | (g << 8) | b);
-                        }
-                    }
+                    img.setRGB(0, 0, decoded.width(), decoded.height(), decoded.argb(), 0, decoded.width());
 
                     JDialog preview = new JDialog(dialog, "Preview: " + fc.getSelectedFile().getName(), false);
                     preview.add(new JLabel(new ImageIcon(img)));

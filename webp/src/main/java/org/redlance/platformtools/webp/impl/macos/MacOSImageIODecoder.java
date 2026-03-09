@@ -1,10 +1,12 @@
 package org.redlance.platformtools.webp.impl.macos;
 
 import org.jetbrains.annotations.Nullable;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
+import java.nio.ByteOrder;
 
 public final class MacOSImageIODecoder implements PlatformWebPDecoder {
     private final MacOSFrameworks fw;
@@ -121,7 +123,7 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
 
             MemorySegment colorSpace = (MemorySegment) this.fw.cgColorSpaceCreateDeviceRGB.invokeExact();
             MemorySegment ctx = (MemorySegment) this.cgBitmapContextCreate.invokeExact(
-                    MemorySegment.NULL, w, h, 8L, w * 4, colorSpace, MacOSFrameworks.kCGImageAlphaPremultipliedLast
+                    MemorySegment.NULL, w, h, 8L, w * 4, colorSpace, MacOSFrameworks.kCGImageAlphaPremultipliedFirst
             );
 
             if (ctx.address() == 0) {
@@ -135,9 +137,11 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
             this.cgContextDrawImage.invokeExact(ctx, 0.0, 0.0, (double) w, (double) h, cgImage);
 
             MemorySegment pixelPtr = (MemorySegment) this.cgBitmapContextGetData.invokeExact(ctx);
-            byte[] rgbaOut = pixelPtr.reinterpret(w * h * 4).toArray(ValueLayout.JAVA_BYTE);
+            int[] argbOut = pixelPtr.reinterpret(w * h * 4).toArray(
+                    ValueLayout.JAVA_INT.withOrder(ByteOrder.BIG_ENDIAN)
+            );
 
-            MacOSFrameworks.unpremultiplyAlpha(rgbaOut);
+            MacOSFrameworks.unpremultiplyAlpha(argbOut);
 
             this.cgContextRelease.invokeExact(ctx);
             this.fw.cgColorSpaceRelease.invokeExact(colorSpace);
@@ -145,7 +149,7 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
             this.fw.cfRelease.invokeExact(source);
             this.fw.cfRelease.invokeExact(cfData);
 
-            return new DecodedImage(rgbaOut, (int) w, (int) h);
+            return new DecodedImage(argbOut, (int) w, (int) h);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable t) {

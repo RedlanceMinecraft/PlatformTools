@@ -61,12 +61,12 @@ public final class WindowsCodecsEncoder implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossless(byte[] rgba, int width, int height) {
-        return encodeLossy(rgba, width, height, 1.0f);
+    public byte[] encodeLossless(int[] argb, int width, int height) {
+        return encodeLossy(argb, width, height, 1.0f);
     }
 
     @Override
-    public byte[] encodeLossy(byte[] rgba, int width, int height, float quality) {
+    public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment factory = this.com.createFactory(arena);
             if (factory == null) throw new IllegalStateException("Failed to create WIC factory");
@@ -134,13 +134,14 @@ public final class WindowsCodecsEncoder implements PlatformWebPEncoder {
                                 ValueLayout.JAVA_INT,
                                 ValueLayout.ADDRESS, ValueLayout.ADDRESS
                         ),
-                        guidPixelFormat32bppRGBA(arena)
+                        guidPixelFormat32bppBGRA(arena)
                 ), "SetPixelFormat");
 
                 int stride = width * 4;
 
-                MemorySegment rgbaSeg = arena.allocate(rgba.length);
-                rgbaSeg.copyFrom(MemorySegment.ofArray(rgba));
+                int bufSize = argb.length * 4;
+                MemorySegment argbSeg = arena.allocate(bufSize);
+                argbSeg.copyFrom(MemorySegment.ofArray(argb));
 
                 checkHr(comCallInt(
                         frame, FRAME_ENCODE_WRITE_PIXELS,
@@ -149,7 +150,7 @@ public final class WindowsCodecsEncoder implements PlatformWebPEncoder {
                                 ValueLayout.ADDRESS, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT,
                                 ValueLayout.JAVA_INT, ValueLayout.ADDRESS
                         ),
-                        height, stride, rgba.length, rgbaSeg
+                        height, stride, bufSize, argbSeg
                 ), "WritePixels");
 
                 checkHr(comCallInt(

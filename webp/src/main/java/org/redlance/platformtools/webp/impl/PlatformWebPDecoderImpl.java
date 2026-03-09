@@ -1,6 +1,7 @@
 package org.redlance.platformtools.webp.impl;
 
 import org.jetbrains.annotations.Nullable;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.impl.imageio.JavaImageIODecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;

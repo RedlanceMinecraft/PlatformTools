@@ -1,6 +1,7 @@
 package org.redlance.platformtools.webp.impl.windows;
 
 import org.jetbrains.annotations.Nullable;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 
 import java.lang.foreign.*;
@@ -88,7 +89,7 @@ public final class WindowsCodecsDecoder implements PlatformWebPDecoder {
                                 ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_DOUBLE,
                                 ValueLayout.JAVA_INT
                         ),
-                        frame, guidPixelFormat32bppRGBA(arena), 0, MemorySegment.NULL, 0.0, 0
+                        frame, guidPixelFormat32bppBGRA(arena), 0, MemorySegment.NULL, 0.0, 0
                 ), "FormatConverter.Initialize");
 
                 MemorySegment wPtr = arena.allocate(ValueLayout.JAVA_INT);
@@ -118,7 +119,7 @@ public final class WindowsCodecsDecoder implements PlatformWebPDecoder {
                         MemorySegment.NULL, stride, bufSize, buffer
                 ), "CopyPixels");
 
-                return new DecodedImage(buffer.toArray(ValueLayout.JAVA_BYTE), w, h);
+                return new DecodedImage(buffer.toArray(ValueLayout.JAVA_INT), w, h);
             } finally {
                 if (converter != null) comRelease(converter);
                 if (frame != null) comRelease(frame);

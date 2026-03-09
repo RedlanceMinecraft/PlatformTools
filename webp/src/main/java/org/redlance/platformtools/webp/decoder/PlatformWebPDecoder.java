@@ -20,16 +20,6 @@ public interface PlatformWebPDecoder {
     PlatformWebPDecoder INSTANCE = new PlatformWebPDecoderImpl();
 
     /**
-     * Decoded image with raw pixel data.
-     *
-     * @param rgba   pixel data in RGBA order, straight (non-premultiplied) alpha,
-     *               length is always {@code width * height * 4}
-     * @param width  image width in pixels
-     * @param height image height in pixels
-     */
-    record DecodedImage(byte[] rgba, int width, int height) {}
-
-    /**
      * Returns the name of the active backend (e.g. "libwebp", "macOS ImageIO", "Windows WIC").
      *
      * @throws UnsupportedOperationException if no backend is available
@@ -37,10 +27,10 @@ public interface PlatformWebPDecoder {
     String backendName();
 
     /**
-     * Decodes a WebP image into raw RGBA pixels.
+     * Decodes a WebP image into packed ARGB pixels.
      *
      * @param webpData raw WebP file bytes
-     * @return decoded image with RGBA pixel data
+     * @return decoded image with ARGB pixel data
      * @throws IllegalStateException         if the data is invalid or decoding fails
      * @throws UnsupportedOperationException if no backend is available
      */
@@ -55,6 +45,22 @@ public interface PlatformWebPDecoder {
      * @throws UnsupportedOperationException if no backend is available
      */
     int[] getInfo(byte[] webpData);
+
+    /**
+     * Returns {@code true} if the given data is a valid WebP image.
+     *
+     * @param data raw bytes to check
+     */
+    default boolean isWebP(byte[] data) {
+        if (data == null || data.length == 0) return false;
+
+        try {
+            int[] info = getInfo(data);
+            return info[0] > 0 && info[1] > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     boolean isAvailable();
 }

@@ -27,23 +27,23 @@ public interface PlatformWebPEncoder {
     String backendName();
 
     /**
-     * Encodes raw RGBA pixels into a lossless WebP image.
+     * Encodes ARGB pixels into a lossless WebP image.
      *
-     * @param rgba   pixel data in RGBA order, straight (non-premultiplied) alpha,
-     *               length must be {@code width * height * 4}
+     * @param argb   pixel data as packed ARGB integers,
+     *               length must be {@code width * height}
      * @param width  image width in pixels
      * @param height image height in pixels
      * @return WebP file bytes
      * @throws IllegalStateException         if encoding fails
      * @throws UnsupportedOperationException if no backend is available
      */
-    byte[] encodeLossless(byte[] rgba, int width, int height);
+    byte[] encodeLossless(int[] argb, int width, int height);
 
     /**
-     * Encodes raw RGBA pixels into a lossy WebP image.
+     * Encodes ARGB pixels into a lossy WebP image.
      *
-     * @param rgba    pixel data in RGBA order, straight (non-premultiplied) alpha,
-     *                length must be {@code width * height * 4}
+     * @param argb    pixel data as packed ARGB integers,
+     *                length must be {@code width * height}
      * @param width   image width in pixels
      * @param height  image height in pixels
      * @param quality compression quality, {@code 0.0f} (smallest) to {@code 1.0f} (best)
@@ -51,7 +51,7 @@ public interface PlatformWebPEncoder {
      * @throws IllegalStateException         if encoding fails
      * @throws UnsupportedOperationException if no backend is available
      */
-    byte[] encodeLossy(byte[] rgba, int width, int height, float quality);
+    byte[] encodeLossy(int[] argb, int width, int height, float quality);
 
     boolean isAvailable();
 }

@@ -7,7 +7,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Iterator;
@@ -33,13 +32,13 @@ public final class JavaImageIOEncoder implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossless(byte[] rgba, int width, int height) {
-        return encode(rgba, width, height, null);
+    public byte[] encodeLossless(int[] argb, int width, int height) {
+        return encode(argb, width, height, null);
     }
 
     @Override
-    public byte[] encodeLossy(byte[] rgba, int width, int height, float quality) {
-        return encode(rgba, width, height, quality);
+    public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
+        return encode(argb, width, height, quality);
     }
 
     @Override
@@ -47,8 +46,9 @@ public final class JavaImageIOEncoder implements PlatformWebPEncoder {
         return true;
     }
 
-    private byte[] encode(byte[] rgba, int width, int height, Float quality) {
-        BufferedImage img = fromRGBA(rgba, width, height);
+    private byte[] encode(int[] argb, int width, int height, Float quality) {
+        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, width, height, argb, 0, width);
 
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
         if (!writers.hasNext()) {
@@ -76,16 +76,4 @@ public final class JavaImageIOEncoder implements PlatformWebPEncoder {
         }
     }
 
-    private static BufferedImage fromRGBA(byte[] rgba, int width, int height) {
-        BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
-        byte[] abgr = ((DataBufferByte) img.getRaster().getDataBuffer()).getData();
-        for (int i = 0; i < width * height; i++) {
-            int si = i * 4;
-            abgr[si]     = rgba[si + 3]; // A
-            abgr[si + 1] = rgba[si + 2]; // B
-            abgr[si + 2] = rgba[si + 1]; // G
-            abgr[si + 3] = rgba[si];     // R
-        }
-        return img;
-    }
 }

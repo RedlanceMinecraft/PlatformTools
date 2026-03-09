@@ -115,27 +115,28 @@ public final class MacOSImageIOEncoder implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossless(byte[] rgba, int width, int height) {
+    public byte[] encodeLossless(int[] argb, int width, int height) {
         // ImageIO doesn't support true lossless WebP; use max quality lossy
-        return encodeLossy(rgba, width, height, 1.0f);
+        return encodeLossy(argb, width, height, 1.0f);
     }
 
     @Override
-    public byte[] encodeLossy(byte[] rgba, int width, int height, float quality) {
+    public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
         try (Arena arena = Arena.ofConfined()) {
             // CGDataProviderCreateWithData stores the pointer — must use arena-allocated memory
-            MemorySegment rgbaSeg = arena.allocate(rgba.length);
-            rgbaSeg.copyFrom(MemorySegment.ofArray(rgba));
+            int bufSize = argb.length * 4;
+            MemorySegment argbSeg = arena.allocate(bufSize);
+            argbSeg.copyFrom(MemorySegment.ofArray(argb));
 
             MemorySegment colorSpace = (MemorySegment) this.fw.cgColorSpaceCreateDeviceRGB.invokeExact();
             MemorySegment provider = (MemorySegment) this.cgDataProviderCreateWithData.invokeExact(
-                    MemorySegment.NULL, rgbaSeg, (long) rgba.length, MemorySegment.NULL
+                    MemorySegment.NULL, argbSeg, (long) bufSize, MemorySegment.NULL
             );
 
             MemorySegment cgImage = (MemorySegment) this.cgImageCreate.invokeExact(
                     (long) width, (long) height,
                     8L, 32L, (long) width * 4,
-                    colorSpace, MacOSFrameworks.kCGImageAlphaLast,
+                    colorSpace, MacOSFrameworks.kCGBitmapByteOrder32Little | MacOSFrameworks.kCGImageAlphaFirst,
                     provider, MemorySegment.NULL,
                     false, 0
             );

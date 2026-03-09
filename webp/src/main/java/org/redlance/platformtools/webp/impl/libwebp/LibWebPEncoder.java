@@ -9,26 +9,26 @@ import java.lang.invoke.MethodHandle;
 public final class LibWebPEncoder implements PlatformWebPEncoder {
     private final LibWebPLibrary lib;
 
-    // size_t WebPEncodeLosslessRGBA(const uint8_t* rgba, int w, int h, int stride, uint8_t** output)
-    private final MethodHandle webPEncodeLosslessRGBA;
-    // size_t WebPEncodeRGBA(const uint8_t* rgba, int w, int h, int stride, float quality, uint8_t** output)
-    private final MethodHandle webPEncodeRGBA;
+    // size_t WebPEncodeLosslessBGRA(const uint8_t* bgra, int w, int h, int stride, uint8_t** output)
+    private final MethodHandle webPEncodeLosslessBGRA;
+    // size_t WebPEncodeBGRA(const uint8_t* bgra, int w, int h, int stride, float quality, uint8_t** output)
+    private final MethodHandle webPEncodeBGRA;
 
     private LibWebPEncoder(LibWebPLibrary lib) {
         this.lib = lib;
 
         Linker linker = Linker.nativeLinker();
 
-        this.webPEncodeLosslessRGBA = linker.downcallHandle(
-                lib.lookup.find("WebPEncodeLosslessRGBA").orElseThrow(),
+        this.webPEncodeLosslessBGRA = linker.downcallHandle(
+                lib.lookup.find("WebPEncodeLosslessBGRA").orElseThrow(),
                 FunctionDescriptor.of(
                         ValueLayout.JAVA_LONG, ValueLayout.ADDRESS,
                         ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT,
                         ValueLayout.ADDRESS
                 )
         );
-        this.webPEncodeRGBA = linker.downcallHandle(
-                lib.lookup.find("WebPEncodeRGBA").orElseThrow(),
+        this.webPEncodeBGRA = linker.downcallHandle(
+                lib.lookup.find("WebPEncodeBGRA").orElseThrow(),
                 FunctionDescriptor.of(
                         ValueLayout.JAVA_LONG, ValueLayout.ADDRESS,
                         ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT,
@@ -48,18 +48,18 @@ public final class LibWebPEncoder implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossless(byte[] rgba, int width, int height) {
+    public byte[] encodeLossless(int[] argb, int width, int height) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment outputPtr = arena.allocate(ValueLayout.ADDRESS);
 
-            MemorySegment rgbaSeg = arena.allocate(rgba.length);
-            rgbaSeg.copyFrom(MemorySegment.ofArray(rgba));
+            MemorySegment argbSeg = arena.allocate((long) argb.length * 4);
+            argbSeg.copyFrom(MemorySegment.ofArray(argb));
 
-            long size = (long) this.webPEncodeLosslessRGBA.invokeExact(
-                    rgbaSeg, width, height, width * 4, outputPtr
+            long size = (long) this.webPEncodeLosslessBGRA.invokeExact(
+                    argbSeg, width, height, width * 4, outputPtr
             );
             if (size == 0) {
-                throw new IllegalStateException("WebPEncodeLosslessRGBA failed");
+                throw new IllegalStateException("WebPEncodeLosslessBGRA failed");
             }
 
             MemorySegment encoded = outputPtr.get(ValueLayout.ADDRESS, 0).reinterpret(size);
@@ -75,18 +75,18 @@ public final class LibWebPEncoder implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossy(byte[] rgba, int width, int height, float quality) {
+    public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment outputPtr = arena.allocate(ValueLayout.ADDRESS);
 
-            MemorySegment rgbaSeg = arena.allocate(rgba.length);
-            rgbaSeg.copyFrom(MemorySegment.ofArray(rgba));
+            MemorySegment argbSeg = arena.allocate((long) argb.length * 4);
+            argbSeg.copyFrom(MemorySegment.ofArray(argb));
 
-            long size = (long) this.webPEncodeRGBA.invokeExact(
-                    rgbaSeg, width, height, width * 4, quality * 100.0f, outputPtr
+            long size = (long) this.webPEncodeBGRA.invokeExact(
+                    argbSeg, width, height, width * 4, quality * 100.0f, outputPtr
             );
             if (size == 0) {
-                throw new IllegalStateException("WebPEncodeRGBA failed");
+                throw new IllegalStateException("WebPEncodeBGRA failed");
             }
 
             MemorySegment encoded = outputPtr.get(ValueLayout.ADDRESS, 0).reinterpret(size);

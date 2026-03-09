@@ -21,13 +21,13 @@ public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
     }
 
     @Override
-    public byte[] encodeLossless(byte[] rgba, int width, int height) {
-        return requireDelegate().encodeLossless(rgba, width, height);
+    public byte[] encodeLossless(int[] argb, int width, int height) {
+        return requireDelegate().encodeLossless(argb, width, height);
     }
 
     @Override
-    public byte[] encodeLossy(byte[] rgba, int width, int height, float quality) {
-        return requireDelegate().encodeLossy(rgba, width, height, quality);
+    public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
+        return requireDelegate().encodeLossy(argb, width, height, quality);
     }
 
     @Override
