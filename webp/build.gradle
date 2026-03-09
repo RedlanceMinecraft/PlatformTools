@@ -1,0 +1,84 @@
+import proguard.gradle.ProGuardTask
+
+plugins {
+    id "com.gradleup.shadow"
+}
+
+configurations {
+    bundled
+    implementation.extendsFrom(bundled)
+}
+
+dependencies {
+    // api(project(":common"))
+
+    bundled("org.ngengine:image-webp-java:0.1.1")
+
+    testImplementation(platform("org.junit:junit-bom:6.0.3"))
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs("--enable-native-access=ALL-UNNAMED")
+    modularity.inferModulePath.set(false)
+    systemProperty("expected.decode", System.getProperty("expected.decode", ""))
+    systemProperty("expected.encode", System.getProperty("expected.encode", ""))
+
+    testLogging {
+        events("passed", "skipped", "failed")
+
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        exceptionFormat = "full"
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(22)
+    options.compilerArgs.addAll(["--add-reads", "platformtools.webp=ALL-UNNAMED"])
+}
+
+shadowJar {
+    archiveClassifier.set("shadow")
+    configurations = [project.configurations.bundled]
+
+    relocate("org.ngengine", "org.redlance.platformtools.webp.shaded.ngengine")
+    exclude("META-INF/maven/**")
+}
+
+tasks.register("proguardJar", ProGuardTask) {
+    dependsOn shadowJar
+
+    injars(shadowJar.archiveFile)
+    outjars(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}-bundled.jar"))
+    libraryjars("${System.getProperty('java.home')}/jmods")
+
+    // Keep all our classes, only shrink shaded dependencies
+    keep("class !org.redlance.platformtools.webp.shaded.**, org.redlance.** { *; }")
+
+    dontnote()
+    ignorewarnings()
+    dontobfuscate()
+    optimizationpasses(10)
+    configuration(file("proguard.pro"))
+}
+
+assemble.dependsOn proguardJar
+downgradeJar.enabled = false
+
+shadow {
+    addShadowVariantIntoJavaComponent = false
+}
+
+publishing.publications.named("mavenJava") {
+    artifact(proguardJar.getOutJarFileCollection().singleFile) {
+        classifier = "bundled"
+        builtBy(tasks.named("proguardJar"))
+    }
+}

@@ -4,12 +4,22 @@ import org.redlance.platformtools.accent.PlatformAccent;
 import org.redlance.platformtools.favorites.PlatformFinderFavorites;
 import org.redlance.platformtools.progress.PlatformProgressBars;
 import org.redlance.platformtools.referer.PlatformFileReferer;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
+import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
+import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
+import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
+import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;
+import org.redlance.platformtools.webp.impl.libwebp.LibWebPEncoder;
+import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
+import org.redlance.platformtools.webp.impl.windows.WindowsCodecsDecoder;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 
 public class TestingApp extends JFrame {
@@ -40,6 +50,10 @@ public class TestingApp extends JFrame {
         JButton recreateButton = new JButton("Recreate");
         recreateButton.addActionListener(this::onRecreate);
         controlsPanel.add(recreateButton);
+
+        JButton webpButton = new JButton("WebP");
+        webpButton.addActionListener(this::onWebP);
+        controlsPanel.add(webpButton);
 
         JButton chooseFileButton = new JButton("Select file");
         chooseFileButton.addActionListener(this::onChooseFile);
@@ -167,6 +181,10 @@ public class TestingApp extends JFrame {
         PlatformAccent.INSTANCE.resubscribe();
     }
 
+    private void onWebP(ActionEvent e) {
+        showWebPDialog();
+    }
+
     private void onProgressBar(ActionEvent e) {
         showProgressDialog();
     }
@@ -223,6 +241,177 @@ public class TestingApp extends JFrame {
         });
 
         dialog.add(addButton, BorderLayout.SOUTH);
+        dialog.setVisible(true);
+    }
+
+    private void showWebPDialog() {
+        JDialog dialog = new JDialog(this, "WebP Test", false);
+        dialog.setSize(500, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+
+        JTextArea log = new JTextArea();
+        log.setEditable(false);
+        log.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        dialog.add(new JScrollPane(log), BorderLayout.CENTER);
+
+        // Status
+        boolean decodeAvailable = PlatformWebPDecoder.INSTANCE.isAvailable();
+        boolean encodeAvailable = PlatformWebPEncoder.INSTANCE.isAvailable();
+        log.append("Decoder: " + (decodeAvailable
+                ? "available (" + PlatformWebPDecoder.INSTANCE.backendName() + ")"
+                : "unavailable") + "\n");
+        log.append("Encoder: " + (encodeAvailable
+                ? "available (" + PlatformWebPEncoder.INSTANCE.backendName() + ")"
+                : "unavailable") + "\n\n");
+
+        JPanel buttons = new JPanel(new FlowLayout());
+
+        // Probe each backend individually
+        JButton probeBtn = new JButton("Probe Backends");
+        probeBtn.addActionListener(event -> {
+            log.append("--- Probing backends ---\n");
+
+            try {
+                PlatformWebPDecoder libDec = LibWebPDecoder.tryCreate();
+                PlatformWebPEncoder libEnc = LibWebPEncoder.tryCreate();
+                log.append("  libwebp: decode " + (libDec != null ? "OK" : "not found")
+                        + ", encode " + (libEnc != null ? "OK" : "not found") + "\n");
+            } catch (Throwable t) {
+                log.append("  libwebp: ERROR " + t + "\n");
+            }
+
+            try {
+                MacOSImageIODecoder macosDec = MacOSImageIODecoder.create();
+                log.append("  macOS ImageIO: decode OK\n");
+            } catch (Throwable t) {
+                log.append("  macOS ImageIO decode: " + t + "\n");
+            }
+            try {
+                // MacOSImageIOEncoder macosEnc = MacOSImageIOEncoder.tryCreate();
+                log.append("  macOS ImageIO: encode " + (/*macosEnc != null ? "OK" :*/ "not available") + "\n");
+            } catch (Throwable t) {
+                log.append("  macOS ImageIO encode: ERROR " + t + "\n");
+            }
+
+            try {
+                WindowsCodecsDecoder wicDec = WindowsCodecsDecoder.tryCreate();
+                // WindowsCodecsEncoder wicEnc = WindowsCodecsEncoder.tryCreate();
+                log.append("  Windows WIC: decode " + (wicDec != null ? "OK" : "not available")
+                        + ", encode " + (/*wicEnc != null ? "OK" :*/ "not available") + "\n");
+            } catch (Throwable t) {
+                log.append("  Windows WIC: ERROR " + t + "\n");
+            }
+
+            try {
+                NgEngineDecoder ngDec = NgEngineDecoder.tryCreate();
+                log.append("  ngengine: decode " + (ngDec != null ? "OK" : "not found") + "\n");
+            } catch (Throwable t) {
+                log.append("  ngengine: ERROR " + t + "\n");
+            }
+
+            log.append("\n");
+        });
+        buttons.add(probeBtn);
+
+        // Encode test
+        JButton encodeBtn = new JButton("Encode Test");
+        encodeBtn.setEnabled(encodeAvailable);
+        encodeBtn.addActionListener(event -> {
+            int w = 256, h = 256;
+            int[] argb = new int[w * h];
+            java.util.Random rng = new java.util.Random(42);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int r = Math.min(255, (x + rng.nextInt(32)) & 0xFF);
+                    int g = Math.min(255, (y + rng.nextInt(32)) & 0xFF);
+                    int b = rng.nextInt(256);
+                    argb[y * w + x] = (0xFF << 24) | (r << 16) | (g << 8) | b;
+                }
+            }
+
+            log.append("Encode 256x256 noisy gradient:\n");
+            log.append("  Raw ARGB:  " + argb.length + " pixels\n");
+
+            byte[] lossless = null;
+            try {
+                lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(argb, w, h);
+                log.append("  Lossless:  " + lossless.length + " bytes\n");
+            } catch (Exception ex) {
+                log.append("  Lossless:  FAILED: " + ex.getMessage() + "\n");
+            }
+
+            try {
+                byte[] lossy75 = PlatformWebPEncoder.INSTANCE.encodeLossy(argb, w, h, 0.75f);
+                log.append("  Lossy 75%%: " + lossy75.length + " bytes\n");
+            } catch (Exception ex) {
+                log.append("  Lossy 75%%: FAILED: " + ex.getMessage() + "\n");
+            }
+
+            try {
+                byte[] lossy50 = PlatformWebPEncoder.INSTANCE.encodeLossy(argb, w, h, 0.50f);
+                log.append("  Lossy 50%%: " + lossy50.length + " bytes\n");
+            } catch (Exception ex) {
+                log.append("  Lossy 50%%: FAILED: " + ex.getMessage() + "\n");
+            }
+
+            // Roundtrip test
+            if (lossless != null && decodeAvailable) {
+                try {
+                    DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(lossless);
+                    log.append("  Roundtrip: " + decoded.width() + "x" + decoded.height()
+                            + " (" + decoded.argb().length + " pixels)\n");
+                } catch (Exception ex) {
+                    log.append("  Roundtrip: FAILED: " + ex.getMessage() + "\n");
+                }
+            }
+            log.append("\n");
+        });
+        buttons.add(encodeBtn);
+
+        // Decode file
+        JButton decodeBtn = new JButton("Decode File");
+        decodeBtn.setEnabled(decodeAvailable);
+        decodeBtn.addActionListener(event -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("WebP files", "webp"));
+            if (fc.showOpenDialog(dialog) != JFileChooser.APPROVE_OPTION) return;
+
+            try {
+                byte[] webpData = Files.readAllBytes(fc.getSelectedFile().toPath());
+                log.append("File: " + fc.getSelectedFile().getName() + " (" + webpData.length + " bytes)\n");
+
+                try {
+                    int[] info = PlatformWebPDecoder.INSTANCE.getInfo(webpData);
+                    log.append("  Info: " + info[0] + "x" + info[1] + "\n");
+                } catch (Exception ex) {
+                    log.append("  Info: FAILED: " + ex.getMessage() + "\n");
+                }
+
+                try {
+                    DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(webpData);
+                    log.append("  Decoded: " + decoded.width() + "x" + decoded.height() + "\n");
+
+                    // Show decoded image
+                    BufferedImage img = new BufferedImage(decoded.width(), decoded.height(), BufferedImage.TYPE_INT_ARGB);
+                    img.setRGB(0, 0, decoded.width(), decoded.height(), decoded.argb(), 0, decoded.width());
+
+                    JDialog preview = new JDialog(dialog, "Preview: " + fc.getSelectedFile().getName(), false);
+                    preview.add(new JLabel(new ImageIcon(img)));
+                    preview.pack();
+                    preview.setLocationRelativeTo(dialog);
+                    preview.setVisible(true);
+                } catch (Exception ex) {
+                    log.append("  Decode: FAILED: " + ex.getMessage() + "\n");
+                }
+            } catch (IOException ex) {
+                log.append("  Error: " + ex.getMessage() + "\n");
+            }
+            log.append("\n");
+        });
+        buttons.add(decodeBtn);
+
+        dialog.add(buttons, BorderLayout.SOUTH);
         dialog.setVisible(true);
     }
 }

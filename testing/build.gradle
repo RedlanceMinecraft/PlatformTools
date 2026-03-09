@@ -1,6 +1,30 @@
+plugins {
+    id "com.gradleup.shadow"
+}
+
 dependencies {
     implementation(project(":accent"))
     implementation(project(":referer"))
     implementation(project(":favorites"))
     implementation(project(":progress"))
+    implementation(project(":webp"))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(25)
+}
+
+jar {
+    manifest.attributes("Main-Class": "org.redlance.platformtools.testing.TestingApp")
+}
+
+shadowJar {
+    dependencies {
+        exclude(project(":webp"))
+    }
+
+    dependsOn(":webp:proguardJar")
+    from(zipTree(project(":webp").file("build/libs/PlatformTools-webp-${version}-bundled.jar")))
+    mergeServiceFiles()
 }

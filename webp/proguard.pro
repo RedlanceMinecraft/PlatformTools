@@ -1,0 +1,2 @@
+-optimizeaggressively
+-allowaccessmodification
