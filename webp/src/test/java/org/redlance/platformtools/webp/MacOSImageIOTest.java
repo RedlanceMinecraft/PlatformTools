@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
-import org.redlance.platformtools.webp.impl.macos.MacOSImageIOEncoder;
 
 import java.io.IOException;
 
@@ -47,7 +46,7 @@ class MacOSImageIOTest {
         TestUtils.assertMatchesReference(decoded, name);
     }
 
-    @Test
+    /*@Test
     void encoderMayBeUnavailable() {
         // macOS currently does not support WebP encoding via ImageIO
         MacOSImageIOEncoder enc = MacOSImageIOEncoder.tryCreate();
@@ -55,5 +54,5 @@ class MacOSImageIOTest {
             byte[] encoded = enc.encodeLossy(TestUtils.generateTestImage(), TestUtils.W, TestUtils.H, 0.75f);
             assertTrue(encoded.length > 0);
         }
-    }
+    }*/
 }

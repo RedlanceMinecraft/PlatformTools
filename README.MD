@@ -26,7 +26,7 @@ The library is split into independent modules so you can include only what you n
 * **[Taskbar Progress Bars](#4-taskbar-progress-bars)** (`progress`): Display progress indicators on the taskbar/dock icon.
     * Supports multiple stacked progress bars (up to 8).
     * *Note: Windows taskbar support is planned for future releases.*
-* **[WebP Codec](#5-webp-codec)** (`webp`): Compact, pixel-exact WebP decoding/encoding (Java 25+, FFM API).
+* **[WebP Codec](#5-webp-codec)** (`webp`): Compact, pixel-exact WebP decoding/encoding (Java 22+, FFM API).
     * **macOS:** ImageIO (CoreGraphics)
     * **Windows:** WIC (Windows Imaging Component)
     * **Cross-platform:** libwebp (if found on library path)
@@ -197,7 +197,7 @@ public class ProgressExample {
 ### 5. WebP Codec
 Compact, pixel-exact WebP decoding and encoding module. The goal is **minimal footprint** and **zero native dependencies** out of the box — the bundled pure-Java decoder adds only ~92 KB (after ProGuard) while producing bit-identical output to libwebp.
 
-> **Note:** Requires Java 25+ (uses the FFM API). Other modules remain Java 8 compatible.
+> **Note:** Requires Java 22+ (uses the FFM API). Other modules remain Java 8 compatible.
 
 Decoder priority (first available wins):
 1. **libwebp** — system-installed native library (fastest, encode + decode)

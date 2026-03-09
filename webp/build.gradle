@@ -40,7 +40,7 @@ test {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
-    options.release.set(25)
+    options.release.set(22)
     options.compilerArgs.addAll(["--add-reads", "platformtools.webp=ALL-UNNAMED"])
 }
 

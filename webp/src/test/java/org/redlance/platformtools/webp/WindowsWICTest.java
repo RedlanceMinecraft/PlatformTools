@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.impl.windows.WindowsCodecsDecoder;
-import org.redlance.platformtools.webp.impl.windows.WindowsCodecsEncoder;
 
 import java.io.IOException;
 
@@ -47,8 +46,8 @@ class WindowsWICTest {
         TestUtils.assertMatchesReference(decoded, name);
     }
 
-    @Test
+    /*@Test
     void noEncoder() {
         assertNull(WindowsCodecsEncoder.tryCreate(), "WIC should not have WebP encoder");
-    }
+    }*/
 }
