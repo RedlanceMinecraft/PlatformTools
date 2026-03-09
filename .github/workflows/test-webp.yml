@@ -20,13 +20,14 @@ jobs:
             expected-encode: libwebp
           - os: ubuntu-latest
             name: Linux (TwelveMonkeys)
-            install: sudo apt-get remove -y 'libwebp*' || true
+            install: sudo find /usr -name 'libwebp*.so*' -exec mv {} {}.disabled \;
             expected-decode: Java ImageIO
           - os: macos-latest
             name: macOS (ImageIO)
             expected-decode: macOS ImageIO
           - os: windows-latest
             name: Windows (WIC)
+            install: winget install --id 9PG2DK419DRG --accept-package-agreements --accept-source-agreements --source msstore --silent
             expected-decode: Windows WIC
 
     name: ${{ matrix.name }}
