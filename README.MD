@@ -39,13 +39,13 @@ repositories {
 
 dependencies {
     // Include only the modules you need:
-    implementation "org.redlance.platformtools:accent:3.2.0"
-    implementation "org.redlance.platformtools:referer:3.2.0"
-    implementation "org.redlance.platformtools:favorites:3.2.0"
-    implementation "org.redlance.platformtools:progress:3.2.0"
+    implementation "org.redlance.platformtools:accent:3.3.0"
+    implementation "org.redlance.platformtools:referer:3.3.0"
+    implementation "org.redlance.platformtools:favorites:3.3.0"
+    implementation "org.redlance.platformtools:progress:3.3.0"
 
     // For Java 8 (Downgraded version), add classifier:
-    // implementation("org.redlance.platformtools:accent:3.2.0:java8")
+    // implementation("org.redlance.platformtools:accent:3.3.0:java8")
 }
 ```
 
@@ -62,7 +62,7 @@ dependencies {
 <dependency>
     <groupId>org.redlance.platformtools</groupId>
     <artifactId>accent</artifactId>
-    <version>3.2.0</version>
+    <version>3.3.0</version>
 </dependency>
 ```
 
