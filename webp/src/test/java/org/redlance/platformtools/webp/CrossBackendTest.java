@@ -1,25 +1,40 @@
 package org.redlance.platformtools.webp;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
+import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
 import org.redlance.platformtools.webp.impl.windows.WindowsCodecsDecoder;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class CrossBackendTest {
-    @Test
-    void allBackendsDecodeSamePixels() throws IOException {
-        byte[] webp = TestUtils.loadTestWebP();
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {
+            "test",             // original test image (with alpha)
+            "gradient_rgb",     // horizontal RGB gradient, opaque
+            "gradient_alpha",   // alpha gradient
+            "checkerboard",     // high-frequency pattern
+            "solid",            // solid color
+            "circle_alpha",     // circular alpha gradient 128x128
+            "tall_gradient",    // 32x256, tests vertical accumulation
+            "wide_gradient",    // 256x32
+            "noise",            // pseudo-random noise pattern
+    })
+    void allBackendsDecodeSamePixels(String name) throws IOException {
+        byte[] webp = TestUtils.loadWebP(name);
 
         PlatformWebPDecoder[] decoders = {
                 LibWebPDecoder.tryCreate(),
                 MacOSImageIODecoder.tryCreate(),
-                WindowsCodecsDecoder.tryCreate()
+                WindowsCodecsDecoder.tryCreate(),
+                NgEngineDecoder.tryCreate(),
         };
 
         DecodedImage reference = null;
@@ -30,26 +45,24 @@ class CrossBackendTest {
             if (dec == null) continue;
 
             DecodedImage decoded = dec.decode(webp);
-            assertTrue(decoded.width() > 0, "Invalid width: " + dec.backendName());
-            assertTrue(decoded.height() > 0, "Invalid height: " + dec.backendName());
+            assertTrue(decoded.width() > 0, name + ": invalid width from " + dec.backendName());
+            assertTrue(decoded.height() > 0, name + ": invalid height from " + dec.backendName());
             assertEquals(decoded.width() * decoded.height(), decoded.argb().length,
-                    "Pixel count mismatch: " + dec.backendName());
+                    name + ": pixel count mismatch from " + dec.backendName());
 
             if (reference == null) {
                 reference = decoded;
                 referenceName = dec.backendName();
             } else {
-                assertEquals(reference.width(), decoded.width(),
-                        "Width mismatch: " + referenceName + " vs " + dec.backendName());
-                assertEquals(reference.height(), decoded.height(),
-                        "Height mismatch: " + referenceName + " vs " + dec.backendName());
-                assertPixelsEqual(reference.argb(), decoded.argb(),
-                        referenceName + " vs " + dec.backendName());
+                String label = name + ": " + referenceName + " vs " + dec.backendName();
+                assertEquals(reference.width(), decoded.width(), label + " width");
+                assertEquals(reference.height(), decoded.height(), label + " height");
+                assertPixelsEqual(reference.argb(), decoded.argb(), label);
             }
             tested++;
         }
 
-        assertTrue(tested > 0, "At least one decoder should be available");
+        assumeTrue(tested >= 2, "Need at least 2 backends to cross-check");
     }
 
     // RGB is undefined when alpha=0 — skip those pixels

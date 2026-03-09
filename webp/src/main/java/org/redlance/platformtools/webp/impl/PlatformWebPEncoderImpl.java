@@ -2,7 +2,6 @@ package org.redlance.platformtools.webp.impl;
 
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
-import org.redlance.platformtools.webp.impl.imageio.JavaImageIOEncoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPEncoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIOEncoder;
 import org.redlance.platformtools.webp.impl.windows.WindowsCodecsEncoder;
@@ -60,13 +59,7 @@ public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
             }
         }
 
-        // 3. Java ImageIO fallback (requires a WebP ImageIO plugin on classpath)
-        try {
-            PlatformWebPEncoder backend = JavaImageIOEncoder.tryCreate();
-            if (backend != null) return backend;
-        } catch (Throwable ignored) {
-        }
-
+        // No pure-Java fallback encoder available
         return null;
     }
 }

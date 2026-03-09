@@ -9,6 +9,8 @@ public final class MacOSFrameworks {
     static final int kCFStringEncodingUTF8 = 0x08000100;
     static final int kCGImageAlphaLast = 3;
     static final int kCGImageAlphaFirst = 4;
+    static final int kCGImageAlphaNoneSkipLast = 5;
+    static final int kCGImageAlphaNoneSkipFirst = 6;
     static final int kCGImageAlphaPremultipliedFirst = 2;
     static final int kCGImageAlphaPremultipliedLast = 1;
     static final int kCGBitmapByteOrder32Little = 2 << 12;

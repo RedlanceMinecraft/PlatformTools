@@ -166,9 +166,10 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
             MacOSFrameworks.unpremultiplyAlpha(argb);
         }
 
-        // Handle AlphaLast formats (RGBA) → convert to ARGB
+        // Handle AlphaLast / SkipLast formats (RGBA/RGBX) → convert to ARGB
         if (alphaInfo == MacOSFrameworks.kCGImageAlphaPremultipliedLast
-                || alphaInfo == MacOSFrameworks.kCGImageAlphaLast) {
+                || alphaInfo == MacOSFrameworks.kCGImageAlphaLast
+                || alphaInfo == MacOSFrameworks.kCGImageAlphaNoneSkipLast) {
             for (int i = 0; i < argb.length; i++) {
                 int px = argb[i];
                 // RGBA → ARGB: rotate right by 8

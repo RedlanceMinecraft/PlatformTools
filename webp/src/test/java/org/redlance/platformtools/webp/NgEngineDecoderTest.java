@@ -1,26 +1,22 @@
 package org.redlance.platformtools.webp;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.EnabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
-import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
-import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
-import org.redlance.platformtools.webp.impl.macos.MacOSImageIOEncoder;
+import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
 
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-@EnabledOnOs(OS.MAC)
-class MacOSImageIOTest {
+class NgEngineDecoderTest {
     @Test
     void decoderAvailable() {
-        PlatformWebPDecoder dec = MacOSImageIODecoder.tryCreate();
-        assertNotNull(dec, "macOS ImageIO decoder should be available");
-        assertEquals("macOS ImageIO", dec.backendName());
+        NgEngineDecoder dec = NgEngineDecoder.tryCreate();
+        assumeTrue(dec != null, "No Java WebP decoder on classpath");
+        assertEquals("Java (ngengine)", dec.backendName());
     }
 
     @ParameterizedTest(name = "{0}")
@@ -36,8 +32,8 @@ class MacOSImageIOTest {
             "noise",            // pseudo-random noise pattern
     })
     void pixelExactDecode(String name) throws IOException {
-        PlatformWebPDecoder dec = MacOSImageIODecoder.tryCreate();
-        assertNotNull(dec);
+        NgEngineDecoder dec = NgEngineDecoder.tryCreate();
+        assumeTrue(dec != null, "No Java WebP decoder on classpath");
 
         DecodedImage decoded = dec.decode(TestUtils.loadWebP(name));
         assertTrue(decoded.width() > 0);
@@ -45,15 +41,5 @@ class MacOSImageIOTest {
         assertEquals(decoded.width() * decoded.height(), decoded.argb().length);
 
         TestUtils.assertMatchesReference(decoded, name);
-    }
-
-    @Test
-    void encoderMayBeUnavailable() {
-        // macOS currently does not support WebP encoding via ImageIO
-        MacOSImageIOEncoder enc = MacOSImageIOEncoder.tryCreate();
-        if (enc != null) {
-            byte[] encoded = enc.encodeLossy(TestUtils.generateTestImage(), TestUtils.W, TestUtils.H, 0.75f);
-            assertTrue(encoded.length > 0);
-        }
     }
 }

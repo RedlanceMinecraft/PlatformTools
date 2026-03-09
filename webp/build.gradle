@@ -12,10 +12,11 @@ configurations {
 dependencies {
     // api(project(":common"))
 
-    bundled("com.twelvemonkeys.imageio:imageio-webp:3.13.1")
+    bundled("org.ngengine:image-webp-java:0.1.1")
 
     testImplementation(platform("org.junit:junit-bom:6.0.3"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation("org.junit.jupiter:junit-jupiter-params")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -40,16 +41,15 @@ test {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
     options.release.set(25)
+    options.compilerArgs.addAll(["--add-reads", "platformtools.webp=ALL-UNNAMED"])
 }
 
 shadowJar {
     archiveClassifier.set("shadow")
     configurations = [project.configurations.bundled]
 
-    relocate("com.twelvemonkeys", "org.redlance.platformtools.webp.shaded.twelvemonkeys")
-    mergeServiceFiles()
+    relocate("org.ngengine", "org.redlance.platformtools.webp.shaded.ngengine")
     exclude("META-INF/maven/**")
-    exclude("META-INF/services/javax.imageio.spi.ImageInputStreamSpi")
 }
 
 tasks.register("proguardJar", ProGuardTask) {
@@ -61,10 +61,6 @@ tasks.register("proguardJar", ProGuardTask) {
 
     // Keep all our classes, only shrink shaded dependencies
     keep("class !org.redlance.platformtools.webp.shaded.**, org.redlance.** { *; }")
-
-    // Keep ImageIO SPI entry points (loaded via ServiceLoader)
-    keep("class * extends javax.imageio.spi.ImageReaderSpi { *; }")
-    keep("class * extends javax.imageio.spi.ImageWriterSpi { *; }")
 
     dontnote()
     ignorewarnings()

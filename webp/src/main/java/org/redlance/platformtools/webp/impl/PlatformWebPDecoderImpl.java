@@ -3,7 +3,7 @@ package org.redlance.platformtools.webp.impl;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
-import org.redlance.platformtools.webp.impl.imageio.JavaImageIODecoder;
+import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
 import org.redlance.platformtools.webp.impl.windows.WindowsCodecsDecoder;
@@ -61,9 +61,9 @@ public final class PlatformWebPDecoderImpl implements PlatformWebPDecoder {
             }
         }
 
-        // 3. Java ImageIO fallback (requires a WebP ImageIO plugin on classpath)
+        // 3. Pure-Java fallback (ngengine image-webp-java)
         try {
-            PlatformWebPDecoder backend = JavaImageIODecoder.tryCreate();
+            PlatformWebPDecoder backend = NgEngineDecoder.tryCreate();
             if (backend != null) return backend;
         } catch (Throwable ignored) {
         }
