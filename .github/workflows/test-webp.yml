@@ -19,9 +19,9 @@ jobs:
             expected-decode: libwebp
             expected-encode: libwebp
           - os: ubuntu-latest
-            name: Linux (TwelveMonkeys)
+            name: Linux (NgEngine)
             install: sudo find /usr -name 'libwebp*.so*' -exec mv {} {}.disabled \;
-            expected-decode: Java ImageIO
+            expected-decode: Java (ngengine)
           - os: macos-latest
             name: macOS (ImageIO)
             expected-decode: macOS ImageIO
