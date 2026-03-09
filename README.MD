@@ -14,20 +14,20 @@ The library is split into independent modules so you can include only what you n
 | **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
 | **progress** | `progress` | Taskbar/dock progress bars (macOS) |
 
-## Features
+## ✨ Features
 
-* **[System Accent Color](#1-system-accent-color)** (`accent`): Retrieve the user's system accent color and subscribe to real-time changes (via Windows DWM hooks or macOS `NSDistributedNotificationCenter`).
-* **[File Origin Metadata](#2-file-origin--referrer)** (`referer`): Retrieve the source URL of downloaded files.
+* **[Finder Favorites (macOS)](#1-finder-favorites-macos)** (`favorites`): Programmatically pin, unpin, and check the status of folders in the macOS Finder Sidebar.
+    * *Note: Support for Windows Quick Access is planned for future releases.*
+* **[System Accent Color (Windows & macOS)](#2-system-accent-color)** (`accent`): Retrieve the user's system accent color and subscribe to real-time changes (via Windows DWM hooks or macOS `NSDistributedNotificationCenter`).
+* **[File Origin Metadata (Windows & macOS)](#3-file-origin--referrer)** (`referer`): Retrieve the source URL of downloaded files.
     * **macOS:** Reads `kMDItemWhereFroms` metadata.
     * **Windows:** Reads **Alternate Data Streams (ADS)**, specifically `Zone.Identifier`.
-* **[Finder Favorites](#3-finder-favorites-macos)** (`favorites`): Programmatically pin, unpin, and check the status of folders in the macOS Finder Sidebar.
-    * *Note: Support for Windows Quick Access is planned for future releases.*
 * **[Taskbar Progress Bars](#4-taskbar-progress-bars)** (`progress`): Display progress indicators on the taskbar/dock icon.
     * Supports multiple stacked progress bars (up to 8).
     * *Note: Windows taskbar support is planned for future releases.*
 * **Java 8 Compatible:** Built on Java 17 but distributed with a Java 8 compatible version (Multi-Release JAR).
 
-## Installation
+## 📦 Installation
 The library is hosted on the Redlance repository.
 
 ### Gradle (Groovy)
@@ -66,9 +66,35 @@ dependencies {
 </dependency>
 ```
 
-## Usage
+## 🚀 Usage
 
-### 1. System Accent Color
+### 1. Finder Favorites (macOS)
+Manage the "Favorites" section in the macOS Finder Sidebar.
+
+> **Note:** Windows "Quick Access" support is currently in development. On Windows, these methods will currently return `false` or perform no action.
+
+```java
+import org.redlance.platformtools.favorites.PlatformFinderFavorites;
+
+public class FavoritesExample {
+    public void toggleFavorite(String path) {
+        // Check if the folder is already pinned
+        if (PlatformFinderFavorites.INSTANCE.isPinned(path)) {
+            System.out.println("Folder is pinned. Unpinning...");
+            PlatformFinderFavorites.INSTANCE.unpin(path);
+        } else {
+            System.out.println("Pinning folder to the sidebar...");
+            PlatformFinderFavorites.INSTANCE.pin(
+                path,
+                true, // isDirectory
+                PlatformFinderFavorites.Position.LAST // or Position.FIRST
+            );
+        }
+    }
+}
+```
+
+### 2. System Accent Color
 Get the system's personalization color and listen for changes in real-time.
 
 ```java
@@ -95,7 +121,7 @@ public class AccentExample {
 }
 ```
 
-### 2. File Origin / Referrer
+### 3. File Origin / Referrer
 Retrieve the source URLs for downloaded files. This works on both macOS (Metadata) and Windows (ADS).
 
 ```java
@@ -116,32 +142,6 @@ public class ReferrerExample {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-    }
-}
-```
-
-### 3. Finder Favorites (macOS)
-Manage the "Favorites" section in the macOS Finder Sidebar.
-
-> **Note:** Windows "Quick Access" support is currently in development. On Windows, these methods will currently return `false` or perform no action.
-
-```java
-import org.redlance.platformtools.favorites.PlatformFinderFavorites;
-
-public class FavoritesExample {
-    public void toggleFavorite(String path) {
-        // Check if the folder is already pinned
-        if (PlatformFinderFavorites.INSTANCE.isPinned(path)) {
-            System.out.println("Folder is pinned. Unpinning...");
-            PlatformFinderFavorites.INSTANCE.unpin(path);
-        } else {
-            System.out.println("Pinning folder to the sidebar...");
-            PlatformFinderFavorites.INSTANCE.pin(
-                path,
-                true, // isDirectory
-                PlatformFinderFavorites.Position.LAST // or Position.FIRST
-            );
         }
     }
 }
@@ -187,7 +187,7 @@ public class ProgressExample {
 }
 ```
 
-## System Requirements
+## 🛠 System Requirements
 * **Java:** 8 or higher.
 * **Operating Systems:**
 * **macOS:** 10.9 (Mavericks) or newer (x86_64 / arm64).
@@ -198,5 +198,5 @@ public class ProgressExample {
 * This library bundles the necessary JNA bindings.
 * On macOS, it requires `java-objc-bridge` (included in dependencies).
 
-## License
+## 📄 License
 This project is licensed under the **MIT License**.
