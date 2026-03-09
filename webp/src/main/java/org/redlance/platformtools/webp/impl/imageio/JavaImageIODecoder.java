@@ -23,6 +23,7 @@ public final class JavaImageIODecoder implements PlatformWebPDecoder {
     }
 
     public static JavaImageIODecoder tryCreate() {
+        ImageIO.scanForPlugins();
         Iterator<ImageReader> readers = ImageIO.getImageReadersByMIMEType("image/webp");
         return readers.hasNext() ? new JavaImageIODecoder() : null;
     }

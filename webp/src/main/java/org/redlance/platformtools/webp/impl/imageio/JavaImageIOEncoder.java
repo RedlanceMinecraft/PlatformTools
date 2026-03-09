@@ -22,6 +22,7 @@ public final class JavaImageIOEncoder implements PlatformWebPEncoder {
     }
 
     public static JavaImageIOEncoder tryCreate() {
+        ImageIO.scanForPlugins();
         Iterator<ImageWriter> writers = ImageIO.getImageWritersByMIMEType("image/webp");
         return writers.hasNext() ? new JavaImageIOEncoder() : null;
     }

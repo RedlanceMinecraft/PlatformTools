@@ -90,7 +90,7 @@ public final class WindowsComHelper {
     }
 
     static int comCallInt(MemorySegment obj, int vtableIndex, FunctionDescriptor fd, Object... extraArgs) throws Throwable {
-        MemorySegment vtable = obj.get(ValueLayout.ADDRESS, 0).reinterpret(PTR_SIZE * (vtableIndex + 1));
+        MemorySegment vtable = obj.reinterpret(PTR_SIZE).get(ValueLayout.ADDRESS, 0).reinterpret(PTR_SIZE * (vtableIndex + 1));
         MemorySegment funcPtr = vtable.getAtIndex(ValueLayout.ADDRESS, vtableIndex);
         MethodHandle mh = LINKER.downcallHandle(funcPtr, fd);
         Object[] allArgs = new Object[extraArgs.length + 1];
