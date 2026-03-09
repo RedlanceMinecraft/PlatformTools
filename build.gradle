@@ -77,7 +77,8 @@ configure(publishedModules) {
                     extension = "jar"
                 }
 
-                artifactId = "platformtools-${project.name}"
+                groupId = "org.redlance.platformtools"
+                artifactId = project.name
 
                 pom {
                     name = "PlatformTools ${project.name}"

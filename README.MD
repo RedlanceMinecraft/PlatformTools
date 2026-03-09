@@ -8,11 +8,11 @@ The library is split into independent modules so you can include only what you n
 
 | Module | Artifact | Description |
 |--------|----------|-------------|
-| **common** | `platformtools-common` | Shared interfaces and native bindings |
-| **accent** | `platformtools-accent` | System accent color (Windows & macOS) |
-| **referer** | `platformtools-referer` | File origin/referrer metadata (Windows & macOS) |
-| **favorites** | `platformtools-favorites` | Finder Sidebar favorites (macOS) |
-| **progress** | `platformtools-progress` | Taskbar/dock progress bars (macOS) |
+| **common** | `common` | Shared interfaces and native bindings |
+| **accent** | `accent` | System accent color (Windows & macOS) |
+| **referer** | `referer` | File origin/referrer metadata (Windows & macOS) |
+| **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
+| **progress** | `progress` | Taskbar/dock progress bars (macOS) |
 
 ## Features
 
@@ -39,13 +39,13 @@ repositories {
 
 dependencies {
     // Include only the modules you need:
-    implementation "org.redlance:platformtools-accent:3.2.0"
-    implementation "org.redlance:platformtools-referer:3.2.0"
-    implementation "org.redlance:platformtools-favorites:3.2.0"
-    implementation "org.redlance:platformtools-progress:3.2.0"
+    implementation "org.redlance.platformtools:accent:3.2.0"
+    implementation "org.redlance.platformtools:referer:3.2.0"
+    implementation "org.redlance.platformtools:favorites:3.2.0"
+    implementation "org.redlance.platformtools:progress:3.2.0"
 
     // For Java 8 (Downgraded version), add classifier:
-    // implementation("org.redlance:platformtools-accent:3.2.0:java8")
+    // implementation("org.redlance.platformtools:accent:3.2.0:java8")
 }
 ```
 
@@ -60,8 +60,8 @@ dependencies {
 
 <!-- Include only the modules you need -->
 <dependency>
-    <groupId>org.redlance</groupId>
-    <artifactId>platformtools-accent</artifactId>
+    <groupId>org.redlance.platformtools</groupId>
+    <artifactId>accent</artifactId>
     <version>3.2.0</version>
 </dependency>
 ```
