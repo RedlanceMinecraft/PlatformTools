@@ -11,9 +11,7 @@ import org.redlance.platformtools.webp.impl.ngengine.NgEngineDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPDecoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPEncoder;
 import org.redlance.platformtools.webp.impl.macos.MacOSImageIODecoder;
-import org.redlance.platformtools.webp.impl.macos.MacOSImageIOEncoder;
 import org.redlance.platformtools.webp.impl.windows.WindowsCodecsDecoder;
-import org.redlance.platformtools.webp.impl.windows.WindowsCodecsEncoder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -290,17 +288,17 @@ public class TestingApp extends JFrame {
                 log.append("  macOS ImageIO decode: " + t + "\n");
             }
             try {
-                MacOSImageIOEncoder macosEnc = MacOSImageIOEncoder.tryCreate();
-                log.append("  macOS ImageIO: encode " + (macosEnc != null ? "OK" : "not available") + "\n");
+                // MacOSImageIOEncoder macosEnc = MacOSImageIOEncoder.tryCreate();
+                log.append("  macOS ImageIO: encode " + (/*macosEnc != null ? "OK" :*/ "not available") + "\n");
             } catch (Throwable t) {
                 log.append("  macOS ImageIO encode: ERROR " + t + "\n");
             }
 
             try {
                 WindowsCodecsDecoder wicDec = WindowsCodecsDecoder.tryCreate();
-                WindowsCodecsEncoder wicEnc = WindowsCodecsEncoder.tryCreate();
+                // WindowsCodecsEncoder wicEnc = WindowsCodecsEncoder.tryCreate();
                 log.append("  Windows WIC: decode " + (wicDec != null ? "OK" : "not available")
-                        + ", encode " + (wicEnc != null ? "OK" : "not available") + "\n");
+                        + ", encode " + (/*wicEnc != null ? "OK" :*/ "not available") + "\n");
             } catch (Throwable t) {
                 log.append("  Windows WIC: ERROR " + t + "\n");
             }
