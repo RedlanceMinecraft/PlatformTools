@@ -2,15 +2,27 @@
 
 **PlatformTools** is a lightweight Java library designed to provide deep integration with operating system features (macOS and Windows) that are not available in the standard JDK. It utilizes JNA (Java Native Access) to bridge the gap between Java and native OS APIs.
 
+## Modules
+
+The library is split into independent modules so you can include only what you need:
+
+| Module | Artifact | Description |
+|--------|----------|-------------|
+| **common** | `common` | Shared interfaces and native bindings |
+| **accent** | `accent` | System accent color (Windows & macOS) |
+| **referer** | `referer` | File origin/referrer metadata (Windows & macOS) |
+| **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
+| **progress** | `progress` | Taskbar/dock progress bars (macOS) |
+
 ## ✨ Features
 
-* **[Finder Favorites (macOS)](#1-finder-favorites-macos):** Programmatically pin, unpin, and check the status of folders in the macOS Finder Sidebar.
+* **[Finder Favorites (macOS)](#1-finder-favorites-macos)** (`favorites`): Programmatically pin, unpin, and check the status of folders in the macOS Finder Sidebar.
     * *Note: Support for Windows Quick Access is planned for future releases.*
-* **[System Accent Color (Windows & macOS)](#2-system-accent-color):** Retrieve the user's system accent color and subscribe to real-time changes (via Windows DWM hooks or macOS `NSDistributedNotificationCenter`).
-* **[File Origin Metadata (Windows & macOS)](#3-file-origin--referrer):** Retrieve the source URL of downloaded files.
+* **[System Accent Color (Windows & macOS)](#2-system-accent-color)** (`accent`): Retrieve the user's system accent color and subscribe to real-time changes (via Windows DWM hooks or macOS `NSDistributedNotificationCenter`).
+* **[File Origin Metadata (Windows & macOS)](#3-file-origin--referrer)** (`referer`): Retrieve the source URL of downloaded files.
     * **macOS:** Reads `kMDItemWhereFroms` metadata.
     * **Windows:** Reads **Alternate Data Streams (ADS)**, specifically `Zone.Identifier`.
-* **[Taskbar Progress Bars](#4-taskbar-progress-bars):** Display progress indicators on the taskbar/dock icon.
+* **[Taskbar Progress Bars](#4-taskbar-progress-bars)** (`progress`): Display progress indicators on the taskbar/dock icon.
     * Supports multiple stacked progress bars (up to 8).
     * *Note: Windows taskbar support is planned for future releases.*
 * **Java 8 Compatible:** Built on Java 17 but distributed with a Java 8 compatible version (Multi-Release JAR).
@@ -26,11 +38,14 @@ repositories {
 }
 
 dependencies {
-    // For Java 17+ (Standard version)
-    implementation "org.redlance:platformtools:3.1.4"
+    // Include only the modules you need:
+    implementation "org.redlance.platformtools:accent:3.3.0"
+    implementation "org.redlance.platformtools:referer:3.3.0"
+    implementation "org.redlance.platformtools:favorites:3.3.0"
+    implementation "org.redlance.platformtools:progress:3.3.0"
 
-    // For Java 8 (Downgraded version)
-    implementation("org.redlance:platformtools:3.1.4:java8")
+    // For Java 8 (Downgraded version), add classifier:
+    // implementation("org.redlance.platformtools:accent:3.3.0:java8")
 }
 ```
 
@@ -43,10 +58,11 @@ dependencies {
     </repository>
 </repositories>
 
+<!-- Include only the modules you need -->
 <dependency>
-    <groupId>org.redlance</groupId>
-    <artifactId>platformtools</artifactId>
-    <version>3.1.4</version>
+    <groupId>org.redlance.platformtools</groupId>
+    <artifactId>accent</artifactId>
+    <version>3.3.0</version>
 </dependency>
 ```
 
@@ -58,7 +74,7 @@ Manage the "Favorites" section in the macOS Finder Sidebar.
 > **Note:** Windows "Quick Access" support is currently in development. On Windows, these methods will currently return `false` or perform no action.
 
 ```java
-import org.redlance.platformtools.PlatformFinderFavorites;
+import org.redlance.platformtools.favorites.PlatformFinderFavorites;
 
 public class FavoritesExample {
     public void toggleFavorite(String path) {
@@ -69,7 +85,7 @@ public class FavoritesExample {
         } else {
             System.out.println("Pinning folder to the sidebar...");
             PlatformFinderFavorites.INSTANCE.pin(
-                path, 
+                path,
                 true, // isDirectory
                 PlatformFinderFavorites.Position.LAST // or Position.FIRST
             );
@@ -82,7 +98,7 @@ public class FavoritesExample {
 Get the system's personalization color and listen for changes in real-time.
 
 ```java
-import org.redlance.platformtools.PlatformAccent;
+import org.redlance.platformtools.accent.PlatformAccent;
 import java.awt.Color;
 
 public class AccentExample {
@@ -97,7 +113,7 @@ public class AccentExample {
             updateUI(newColor);
         });
     }
-    
+
     // Call this if your window is recreated (specifically for Windows hooks)
     public void onWindowRecreated() {
         PlatformAccent.INSTANCE.resubscribe();
@@ -109,7 +125,7 @@ public class AccentExample {
 Retrieve the source URLs for downloaded files. This works on both macOS (Metadata) and Windows (ADS).
 
 ```java
-import org.redlance.platformtools.PlatformFileReferer;
+import org.redlance.platformtools.referer.PlatformFileReferer;
 import java.io.File;
 import java.util.Set;
 
@@ -137,8 +153,8 @@ Display progress indicators on the taskbar/dock icon. Supports multiple stacked 
 > **Note:** Windows taskbar support is currently in development. On Windows, these methods will currently perform no action.
 
 ```java
-import org.redlance.platformtools.PlatformProgressBars;
-import org.redlance.platformtools.PlatformProgressBars.PlatformProgressBar;
+import org.redlance.platformtools.progress.PlatformProgressBars;
+import org.redlance.platformtools.progress.PlatformProgressBars.PlatformProgressBar;
 
 public class ProgressExample {
     public void downloadFile() {

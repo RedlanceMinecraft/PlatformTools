@@ -1,117 +1,124 @@
 plugins {
-    id "xyz.wagyourtail.jvmdowngrader" version "1.3.6"
-    id "maven-publish"
-    id "java-library"
-    id "java"
+    id "xyz.wagyourtail.jvmdowngrader" version "1.3.6" apply false
 }
 
-base.archivesName = "PlatformTools"
-version = "3.2.0"
-group = "org.redlance"
+allprojects {
+    group = "org.redlance"
+    version = "3.3.0"
 
-repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://repo.redlance.org/public")
+    repositories {
+        mavenCentral()
+        maven {
+            url = uri("https://repo.redlance.org/public")
+        }
     }
-}
-
-dependencies {
-    compileOnlyApi("org.jetbrains:annotations:26.1.0")
-    api("net.java.dev.jna:jna:5.18.1")
-
-    // macOS
-    implementation("ca.weblite:java-objc-bridge:1.2")
 }
 
 def javaTarget = 17
+def publishedModules = subprojects.findAll { it.name != "testing" }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = "UTF-8"
-    options.release.set(javaTarget)
-}
+configure(subprojects) {
+    apply plugin: "java-library"
 
-jar {
-    manifest.attributes("Multi-Release": true)
-}
-
-downgradeJar {
-    dependsOn jar
-
-    def versions = []
-    for (int i = javaTarget; i >= 8; i--) {
-        versions.add(JavaVersion.toVersion(i))
+    dependencies {
+        compileOnlyApi("org.jetbrains:annotations:26.1.0")
     }
 
-    multiReleaseOriginal = true
-    multiReleaseVersions = versions
-
-    downgradeTo = JavaVersion.VERSION_1_8
-    classpath = configurations.compileClasspath
-
-    inputFile = tasks.jar.archiveFile
-}
-
-shadeDowngradedApi {
-    downgradeTo = JavaVersion.VERSION_1_8
-    shadePath {
-        return "org/redlance/platformtools/impl/"
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = "UTF-8"
+        options.release.set(javaTarget)
     }
-    archiveClassifier.set("java8")
 }
 
-java {
-    withSourcesJar()
-}
+configure(publishedModules) {
+    apply plugin: "maven-publish"
+    apply plugin: "xyz.wagyourtail.jvmdowngrader"
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact(tasks.shadeDowngradedApi) {
-                classifier = "java8"
-                extension = "jar"
-            }
+    base.archivesName = "PlatformTools-${project.name}"
 
-            artifactId = "platformtools"
+    jar {
+        manifest.attributes("Multi-Release": true)
+    }
 
-            pom {
-                name = base.archivesName
-                description = "Use platform-dependent code in java (via jna)"
-                url = "https://github.com/RedlanceMinecraft/PlatformTools"
+    downgradeJar {
+        dependsOn jar
 
-                developers {
-                    developer {
-                        id = "dima_dencep"
-                        name = "dima_dencep"
-                        email = "dima_dencep@redlance.org"
-                    }
-                }
-
-                licenses {
-                    license {
-                        name = "MIT"
-                        url = "https://github.com/RedlanceMinecraft/PlatformTools/blob/HEAD/LICENSE"
-                    }
-                }
-
-                scm {
-                    connection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
-                    developerConnection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
-                    url = "https://github.com/RedlanceMinecraft/PlatformTools.git"
-                }
-            }
-
-            from components.java
+        def versions = []
+        for (int i = javaTarget; i >= 8; i--) {
+            versions.add(JavaVersion.toVersion(i))
         }
+
+        multiReleaseOriginal = true
+        multiReleaseVersions = versions
+
+        downgradeTo = JavaVersion.VERSION_1_8
+        classpath = configurations.compileClasspath
+
+        inputFile = tasks.jar.archiveFile
     }
 
-    repositories {
-        maven {
-            name = "RedlanceMinecraft"
-            url = "https://repo.redlance.org/public"
-            credentials {
-                username = "dima_dencep"
-                password = System.getenv("MAVEN_PASSWORD")
+    shadeDowngradedApi {
+        downgradeTo = JavaVersion.VERSION_1_8
+        shadePath {
+            return "org/redlance/platformtools/"
+        }
+        archiveClassifier.set("java8")
+    }
+
+    java {
+        withSourcesJar()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                artifact(tasks.shadeDowngradedApi) {
+                    classifier = "java8"
+                    extension = "jar"
+                }
+
+                groupId = "org.redlance.platformtools"
+                artifactId = project.name
+
+                pom {
+                    name = "PlatformTools ${project.name}"
+                    description = "Use platform-dependent code in java (via jna)"
+                    url = "https://github.com/RedlanceMinecraft/PlatformTools"
+
+                    developers {
+                        developer {
+                            id = "dima_dencep"
+                            name = "dima_dencep"
+                            email = "dima_dencep@redlance.org"
+                        }
+                    }
+
+                    licenses {
+                        license {
+                            name = "MIT"
+                            url = "https://github.com/RedlanceMinecraft/PlatformTools/blob/HEAD/LICENSE"
+                        }
+                    }
+
+                    scm {
+                        connection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
+                        developerConnection = "scm:git:github.com/RedlanceMinecraft/PlatformTools.git"
+                        url = "https://github.com/RedlanceMinecraft/PlatformTools.git"
+                    }
+                }
+
+                from components.java
+            }
+        }
+
+        repositories {
+            maven {
+                name = "RedlanceMinecraft"
+                url = "https://repo.redlance.org/public"
+                credentials {
+                    username = "dima_dencep"
+                    password = System.getenv("MAVEN_PASSWORD")
+                }
             }
         }
     }
