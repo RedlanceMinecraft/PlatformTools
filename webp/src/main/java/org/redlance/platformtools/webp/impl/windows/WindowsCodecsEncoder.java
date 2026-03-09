@@ -1,4 +1,4 @@
-package org.redlance.platformtools.webp.impl.windows;
+/*package org.redlance.platformtools.webp.impl.windows;
 
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
@@ -229,4 +229,4 @@ public final class WindowsCodecsEncoder implements PlatformWebPEncoder {
     public boolean isAvailable() {
         return true;
     }
-}
+}*/

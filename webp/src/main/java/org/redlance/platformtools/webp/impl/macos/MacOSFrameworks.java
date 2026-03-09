@@ -23,10 +23,10 @@ public final class MacOSFrameworks {
     final MethodHandle cgColorSpaceCreateDeviceRGB;
     final MethodHandle cgColorSpaceRelease;
     final MethodHandle cgImageRelease;
-    private final MethodHandle cfStringCreateWithCString;
+    /*private final MethodHandle cfStringCreateWithCString;
 
     final MethodHandle cfDataCreateMutable;
-    final MethodHandle cgImageDestCreateWithData;
+    final MethodHandle cgImageDestCreateWithData;*/
 
     private MacOSFrameworks(SymbolLookup combined, SymbolLookup imageIO) {
         this.lookup = combined;
@@ -38,12 +38,12 @@ public final class MacOSFrameworks {
                 combined.find("CFRelease").orElseThrow(),
                 FunctionDescriptor.ofVoid(ValueLayout.ADDRESS)
         );
-        this.cfStringCreateWithCString = linker.downcallHandle(
+        /*this.cfStringCreateWithCString = linker.downcallHandle(
                 combined.find("CFStringCreateWithCString").orElseThrow(),
                 FunctionDescriptor.of(
                         ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_INT
                 )
-        );
+        );*/
         this.cgColorSpaceCreateDeviceRGB = linker.downcallHandle(
                 combined.find("CGColorSpaceCreateDeviceRGB").orElseThrow(),
                 FunctionDescriptor.of(ValueLayout.ADDRESS)
@@ -57,7 +57,7 @@ public final class MacOSFrameworks {
                 FunctionDescriptor.ofVoid(ValueLayout.ADDRESS)
         );
 
-        this.cfDataCreateMutable = linker.downcallHandle(
+        /*this.cfDataCreateMutable = linker.downcallHandle(
                 combined.find("CFDataCreateMutable").orElseThrow(),
                 FunctionDescriptor.of(
                         ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG
@@ -68,7 +68,7 @@ public final class MacOSFrameworks {
                 FunctionDescriptor.of(
                         ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS
                 )
-        );
+        );*/
     }
 
     private static class Holder {
@@ -96,11 +96,11 @@ public final class MacOSFrameworks {
         return new MacOSFrameworks(combined, io);
     }
 
-    MemorySegment createCFString(Arena arena, String s) throws Throwable {
+    /*MemorySegment createCFString(Arena arena, String s) throws Throwable {
         return (MemorySegment) cfStringCreateWithCString.invokeExact(
                 MemorySegment.NULL, arena.allocateFrom(s), kCFStringEncodingUTF8
         );
-    }
+    }*/
 
     static void unpremultiplyAlpha(int[] argb) {
         for (int i = 0; i < argb.length; i++) {

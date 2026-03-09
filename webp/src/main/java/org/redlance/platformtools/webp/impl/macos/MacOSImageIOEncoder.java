@@ -1,4 +1,4 @@
-package org.redlance.platformtools.webp.impl.macos;
+/*package org.redlance.platformtools.webp.impl.macos;
 
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
@@ -219,4 +219,4 @@ public final class MacOSImageIOEncoder implements PlatformWebPEncoder {
     public boolean isAvailable() {
         return true;
     }
-}
+}*/

@@ -3,8 +3,6 @@ package org.redlance.platformtools.webp.impl;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
 import org.redlance.platformtools.webp.impl.libwebp.LibWebPEncoder;
-import org.redlance.platformtools.webp.impl.macos.MacOSImageIOEncoder;
-import org.redlance.platformtools.webp.impl.windows.WindowsCodecsEncoder;
 
 public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
     private final @Nullable PlatformWebPEncoder delegate = createBackend();
@@ -43,7 +41,7 @@ public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
         }
 
         // 2. System frameworks
-        String os = System.getProperty("os.name", "").toLowerCase();
+        /*String os = System.getProperty("os.name", "").toLowerCase();
 
         if (os.contains("mac")) {
             try {
@@ -57,7 +55,7 @@ public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
                 if (backend != null) return backend;
             } catch (Throwable ignored) {
             }
-        }
+        }*/
 
         // No pure-Java fallback encoder available
         return null;
