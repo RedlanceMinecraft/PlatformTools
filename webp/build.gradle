@@ -26,6 +26,15 @@ test {
     modularity.inferModulePath.set(false)
     systemProperty("expected.decode", System.getProperty("expected.decode", ""))
     systemProperty("expected.encode", System.getProperty("expected.encode", ""))
+
+    testLogging {
+        events("passed", "skipped", "failed")
+
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        exceptionFormat = "full"
+    }
 }
 
 tasks.withType(JavaCompile).configureEach {
