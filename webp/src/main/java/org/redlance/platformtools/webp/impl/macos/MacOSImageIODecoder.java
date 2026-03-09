@@ -16,10 +16,11 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
     private final MethodHandle cgImageSourceCreateImageAtIndex;
     private final MethodHandle cgImageGetWidth;
     private final MethodHandle cgImageGetHeight;
-    private final MethodHandle cgBitmapContextCreate;
-    private final MethodHandle cgBitmapContextGetData;
-    private final MethodHandle cgContextDrawImage;
-    private final MethodHandle cgContextRelease;
+    private final MethodHandle cgImageGetBitmapInfo;
+    private final MethodHandle cgImageGetDataProvider;
+    private final MethodHandle cgDataProviderCopyData;
+    private final MethodHandle cfDataGetBytePtr;
+    private final MethodHandle cfDataGetLength;
 
     private MacOSImageIODecoder(MacOSFrameworks fw) {
         this.fw = fw;
@@ -52,30 +53,25 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
                 fw.lookup.find("CGImageGetHeight").orElseThrow(),
                 FunctionDescriptor.of(ValueLayout.JAVA_LONG, ValueLayout.ADDRESS)
         );
-        this.cgBitmapContextCreate = linker.downcallHandle(
-                fw.lookup.find("CGBitmapContextCreate").orElseThrow(),
-                FunctionDescriptor.of(
-                        ValueLayout.ADDRESS,
-                        ValueLayout.ADDRESS, ValueLayout.JAVA_LONG, ValueLayout.JAVA_LONG,
-                        ValueLayout.JAVA_LONG, ValueLayout.JAVA_LONG, ValueLayout.ADDRESS, ValueLayout.JAVA_INT
-                )
+        this.cgImageGetBitmapInfo = linker.downcallHandle(
+                fw.lookup.find("CGImageGetBitmapInfo").orElseThrow(),
+                FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS)
         );
-        this.cgBitmapContextGetData = linker.downcallHandle(
-                fw.lookup.find("CGBitmapContextGetData").orElseThrow(),
+        this.cgImageGetDataProvider = linker.downcallHandle(
+                fw.lookup.find("CGImageGetDataProvider").orElseThrow(),
                 FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS)
         );
-        this.cgContextDrawImage = linker.downcallHandle(
-                fw.lookup.find("CGContextDrawImage").orElseThrow(),
-                FunctionDescriptor.ofVoid(
-                        ValueLayout.ADDRESS,
-                        ValueLayout.JAVA_DOUBLE, ValueLayout.JAVA_DOUBLE,
-                        ValueLayout.JAVA_DOUBLE, ValueLayout.JAVA_DOUBLE,
-                        ValueLayout.ADDRESS
-                )
+        this.cgDataProviderCopyData = linker.downcallHandle(
+                fw.lookup.find("CGDataProviderCopyData").orElseThrow(),
+                FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS)
         );
-        this.cgContextRelease = linker.downcallHandle(
-                fw.lookup.find("CGContextRelease").orElseThrow(),
-                FunctionDescriptor.ofVoid(ValueLayout.ADDRESS)
+        this.cfDataGetBytePtr = linker.downcallHandle(
+                fw.lookup.find("CFDataGetBytePtr").orElseThrow(),
+                FunctionDescriptor.of(ValueLayout.ADDRESS, ValueLayout.ADDRESS)
+        );
+        this.cfDataGetLength = linker.downcallHandle(
+                fw.lookup.find("CFDataGetLength").orElseThrow(),
+                FunctionDescriptor.of(ValueLayout.JAVA_LONG, ValueLayout.ADDRESS)
         );
     }
 
@@ -120,41 +116,67 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
 
             long w = (long) this.cgImageGetWidth.invokeExact(cgImage);
             long h = (long) this.cgImageGetHeight.invokeExact(cgImage);
+            int bitmapInfo = (int) this.cgImageGetBitmapInfo.invokeExact(cgImage);
 
-            MemorySegment colorSpace = (MemorySegment) this.fw.cgColorSpaceCreateDeviceRGB.invokeExact();
-            MemorySegment ctx = (MemorySegment) this.cgBitmapContextCreate.invokeExact(
-                    MemorySegment.NULL, w, h, 8L, w * 4, colorSpace, MacOSFrameworks.kCGImageAlphaPremultipliedFirst
-            );
-
-            if (ctx.address() == 0) {
-                this.fw.cgColorSpaceRelease.invokeExact(colorSpace);
+            // Read raw pixel data from CGImage
+            MemorySegment provider = (MemorySegment) this.cgImageGetDataProvider.invokeExact(cgImage);
+            MemorySegment rawData = (MemorySegment) this.cgDataProviderCopyData.invokeExact(provider);
+            if (rawData.address() == 0) {
                 this.fw.cgImageRelease.invokeExact(cgImage);
                 this.fw.cfRelease.invokeExact(source);
                 this.fw.cfRelease.invokeExact(cfData);
-                throw new IllegalStateException("CGBitmapContextCreate failed");
+                throw new IllegalStateException("CGDataProviderCopyData failed");
             }
 
-            this.cgContextDrawImage.invokeExact(ctx, 0.0, 0.0, (double) w, (double) h, cgImage);
+            long len = (long) this.cfDataGetLength.invokeExact(rawData);
+            MemorySegment ptr = (MemorySegment) this.cfDataGetBytePtr.invokeExact(rawData);
+            MemorySegment pixels = ptr.reinterpret(len);
 
-            MemorySegment pixelPtr = (MemorySegment) this.cgBitmapContextGetData.invokeExact(ctx);
-            int[] argbOut = pixelPtr.reinterpret(w * h * 4).toArray(
-                    ValueLayout.JAVA_INT.withOrder(ByteOrder.BIG_ENDIAN)
-            );
+            int[] argb = readPixels(pixels, (int) w, (int) h, bitmapInfo);
 
-            MacOSFrameworks.unpremultiplyAlpha(argbOut);
-
-            this.cgContextRelease.invokeExact(ctx);
-            this.fw.cgColorSpaceRelease.invokeExact(colorSpace);
+            this.fw.cfRelease.invokeExact(rawData);
             this.fw.cgImageRelease.invokeExact(cgImage);
             this.fw.cfRelease.invokeExact(source);
             this.fw.cfRelease.invokeExact(cfData);
 
-            return new DecodedImage(argbOut, (int) w, (int) h);
+            return new DecodedImage(argb, (int) w, (int) h);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable t) {
             throw new RuntimeException("macOS ImageIO decode failed", t);
         }
+    }
+
+    private static int[] readPixels(MemorySegment pixels, int w, int h, int bitmapInfo) {
+        int alphaInfo = bitmapInfo & 0x1F; // kCGBitmapAlphaInfoMask
+        int byteOrder = bitmapInfo & 0x7000; // kCGBitmapByteOrderMask
+        boolean premultiplied = alphaInfo == MacOSFrameworks.kCGImageAlphaPremultipliedFirst
+                || alphaInfo == MacOSFrameworks.kCGImageAlphaPremultipliedLast;
+
+        int[] argb;
+        if (byteOrder == MacOSFrameworks.kCGBitmapByteOrder32Little) {
+            // Native LE int = BGRA bytes = ARGB int
+            argb = pixels.toArray(ValueLayout.JAVA_INT);
+        } else {
+            // Big-endian / default: ARGB bytes → read as BE int
+            argb = pixels.toArray(ValueLayout.JAVA_INT.withOrder(ByteOrder.BIG_ENDIAN));
+        }
+
+        if (premultiplied) {
+            MacOSFrameworks.unpremultiplyAlpha(argb);
+        }
+
+        // Handle AlphaLast formats (RGBA) → convert to ARGB
+        if (alphaInfo == MacOSFrameworks.kCGImageAlphaPremultipliedLast
+                || alphaInfo == MacOSFrameworks.kCGImageAlphaLast) {
+            for (int i = 0; i < argb.length; i++) {
+                int px = argb[i];
+                // RGBA → ARGB: rotate right by 8
+                argb[i] = (px << 24) | (px >>> 8);
+            }
+        }
+
+        return argb;
     }
 
     @Override
