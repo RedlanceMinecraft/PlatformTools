@@ -2,7 +2,8 @@ name: Test WebP
 
 on:
   push:
-    branches: ['main', 'webp']
+    branches:
+      - 'main'
   pull_request:
   workflow_dispatch:
 
