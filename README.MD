@@ -13,7 +13,7 @@ The library is split into independent modules so you can include only what you n
 | **referer** | `referer` | File origin/referrer metadata (Windows & macOS) |
 | **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
 | **progress** | `progress` | Taskbar/dock progress bars (macOS) |
-| **webp** | `webp` | WebP image encoding/decoding (macOS, Windows, libwebp) |
+| **webp** | `webp` | Compact WebP codec (libwebp, macOS ImageIO, Windows WIC, pure-Java ngengine fallback) |
 
 ## ✨ Features
 
@@ -26,10 +26,11 @@ The library is split into independent modules so you can include only what you n
 * **[Taskbar Progress Bars](#4-taskbar-progress-bars)** (`progress`): Display progress indicators on the taskbar/dock icon.
     * Supports multiple stacked progress bars (up to 8).
     * *Note: Windows taskbar support is planned for future releases.*
-* **[WebP Codec](#5-webp-codec)** (`webp`): Encode and decode WebP images using platform-native APIs (Java 25+, FFM API).
+* **[WebP Codec](#5-webp-codec)** (`webp`): Compact, pixel-exact WebP decoding/encoding (Java 25+, FFM API).
     * **macOS:** ImageIO (CoreGraphics)
     * **Windows:** WIC (Windows Imaging Component)
     * **Cross-platform:** libwebp (if found on library path)
+    * **Pure-Java fallback:** [ngengine image-webp-java](https://github.com/NostrGameEngine/image-webp-java) (~92 KB bundled)
 * **Java 8 Compatible:** Built on Java 17 but distributed with a Java 8 compatible version (Multi-Release JAR).
 
 ## 📦 Installation
@@ -194,24 +195,31 @@ public class ProgressExample {
 ```
 
 ### 5. WebP Codec
-Encode and decode WebP images using platform-native APIs. No bundled native libraries required — uses macOS ImageIO, Windows WIC, or system-installed libwebp.
+Compact, pixel-exact WebP decoding and encoding module. The goal is **minimal footprint** and **zero native dependencies** out of the box — the bundled pure-Java decoder adds only ~92 KB (after ProGuard) while producing bit-identical output to libwebp.
 
 > **Note:** Requires Java 25+ (uses the FFM API). Other modules remain Java 8 compatible.
 
+Decoder priority (first available wins):
+1. **libwebp** — system-installed native library (fastest, encode + decode)
+2. **macOS ImageIO** — CoreGraphics via FFM (decode only, no extra dependencies)
+3. **Windows WIC** — Windows Imaging Component via FFM (decode only, requires WebP codec from MS Store)
+4. **ngengine** — pure-Java fallback ([image-webp-java](https://github.com/NostrGameEngine/image-webp-java), decode only, ~92 KB bundled)
+
 The `webp` module has two variants:
 - **Standard** (`webp`) — uses platform-native APIs or system-installed libwebp. Zero bundled dependencies.
-- **Bundled** (`webp` with classifier `bundled`) — includes a shaded and ProGuard-optimized [TwelveMonkeys](https://github.com/haraldk/TwelveMonkeys) WebP codec (~146K). Works on any platform without native libraries as a pure Java fallback.
+- **Bundled** (`webp` with classifier `bundled`) — includes a shaded and ProGuard-optimized [ngengine image-webp-java](https://github.com/NostrGameEngine/image-webp-java) decoder (~92 KB). Pixel-exact on all platforms without native libraries.
 
 ```groovy
 // Standard — requires platform support or libwebp on library path
 implementation "org.redlance.platformtools:webp:3.3.0"
 
-// Bundled — self-contained, works everywhere
+// Bundled — self-contained, works everywhere (decode only)
 implementation "org.redlance.platformtools:webp:3.3.0:bundled"
 ```
 
 ```java
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
 
 public class WebPExample {
@@ -220,17 +228,17 @@ public class WebPExample {
         int[] info = PlatformWebPDecoder.INSTANCE.getInfo(webpData);
         System.out.println("Size: " + info[0] + "x" + info[1]);
 
-        // Full decode to RGBA pixels
-        PlatformWebPDecoder.DecodedImage image = PlatformWebPDecoder.INSTANCE.decode(webpData);
-        byte[] rgba = image.rgba(); // straight alpha, width * height * 4 bytes
+        // Full decode to ARGB pixels
+        DecodedImage image = PlatformWebPDecoder.INSTANCE.decode(webpData);
+        int[] argb = image.argb(); // width * height pixels
     }
 
-    public void encodeWebP(byte[] rgba, int width, int height) {
-        // Lossless encoding
-        byte[] lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(rgba, width, height);
+    public void encodeWebP(int[] argb, int width, int height) {
+        // Lossless encoding (requires libwebp or platform encoder)
+        byte[] lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(argb, width, height);
 
         // Lossy encoding (0.0 = smallest, 1.0 = best quality)
-        byte[] lossy = PlatformWebPEncoder.INSTANCE.encodeLossy(rgba, width, height, 0.75f);
+        byte[] lossy = PlatformWebPEncoder.INSTANCE.encodeLossy(argb, width, height, 0.75f);
     }
 }
 ```
