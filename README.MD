@@ -13,6 +13,7 @@ The library is split into independent modules so you can include only what you n
 | **referer** | `referer` | File origin/referrer metadata (Windows & macOS) |
 | **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
 | **progress** | `progress` | Taskbar/dock progress bars (macOS) |
+| **webp** | `webp` | WebP image encoding/decoding (macOS, Windows, libwebp) |
 
 ## ✨ Features
 
@@ -25,6 +26,10 @@ The library is split into independent modules so you can include only what you n
 * **[Taskbar Progress Bars](#4-taskbar-progress-bars)** (`progress`): Display progress indicators on the taskbar/dock icon.
     * Supports multiple stacked progress bars (up to 8).
     * *Note: Windows taskbar support is planned for future releases.*
+* **[WebP Codec](#5-webp-codec)** (`webp`): Encode and decode WebP images using platform-native APIs (Java 25+, FFM API).
+    * **macOS:** ImageIO (CoreGraphics)
+    * **Windows:** WIC (Windows Imaging Component)
+    * **Cross-platform:** libwebp (if found on library path)
 * **Java 8 Compatible:** Built on Java 17 but distributed with a Java 8 compatible version (Multi-Release JAR).
 
 ## 📦 Installation
@@ -43,6 +48,7 @@ dependencies {
     implementation "org.redlance.platformtools:referer:3.3.0"
     implementation "org.redlance.platformtools:favorites:3.3.0"
     implementation "org.redlance.platformtools:progress:3.3.0"
+    implementation "org.redlance.platformtools:webp:3.3.0"
 
     // For Java 8 (Downgraded version), add classifier:
     // implementation("org.redlance.platformtools:accent:3.3.0:java8")
@@ -183,6 +189,48 @@ public class ProgressExample {
         // Clean up when done
         bar1.close();
         bar2.close();
+    }
+}
+```
+
+### 5. WebP Codec
+Encode and decode WebP images using platform-native APIs. No bundled native libraries required — uses macOS ImageIO, Windows WIC, or system-installed libwebp.
+
+> **Note:** Requires Java 25+ (uses the FFM API). Other modules remain Java 8 compatible.
+
+The `webp` module has two variants:
+- **Standard** (`webp`) — uses platform-native APIs or system-installed libwebp. Zero bundled dependencies.
+- **Bundled** (`webp` with classifier `bundled`) — includes a shaded and ProGuard-optimized [TwelveMonkeys](https://github.com/haraldk/TwelveMonkeys) WebP codec (~146K). Works on any platform without native libraries as a pure Java fallback.
+
+```groovy
+// Standard — requires platform support or libwebp on library path
+implementation "org.redlance.platformtools:webp:3.3.0"
+
+// Bundled — self-contained, works everywhere
+implementation "org.redlance.platformtools:webp:3.3.0:bundled"
+```
+
+```java
+import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
+import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
+
+public class WebPExample {
+    public void decodeWebP(byte[] webpData) {
+        // Get image dimensions without full decode
+        int[] info = PlatformWebPDecoder.INSTANCE.getInfo(webpData);
+        System.out.println("Size: " + info[0] + "x" + info[1]);
+
+        // Full decode to RGBA pixels
+        PlatformWebPDecoder.DecodedImage image = PlatformWebPDecoder.INSTANCE.decode(webpData);
+        byte[] rgba = image.rgba(); // straight alpha, width * height * 4 bytes
+    }
+
+    public void encodeWebP(byte[] rgba, int width, int height) {
+        // Lossless encoding
+        byte[] lossless = PlatformWebPEncoder.INSTANCE.encodeLossless(rgba, width, height);
+
+        // Lossy encoding (0.0 = smallest, 1.0 = best quality)
+        byte[] lossy = PlatformWebPEncoder.INSTANCE.encodeLossy(rgba, width, height, 0.75f);
     }
 }
 ```

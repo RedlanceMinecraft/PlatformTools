@@ -1,0 +1,66 @@
+import proguard.gradle.ProGuardTask
+
+plugins {
+    id "com.gradleup.shadow"
+}
+
+configurations {
+    bundled
+    implementation.extendsFrom(bundled)
+}
+
+dependencies {
+    // api(project(":common"))
+
+    bundled("com.twelvemonkeys.imageio:imageio-webp:3.13.1")
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(25)
+}
+
+shadowJar {
+    archiveClassifier.set("shadow")
+    configurations = [project.configurations.bundled]
+
+    relocate("com.twelvemonkeys", "org.redlance.platformtools.webp.shaded.twelvemonkeys")
+    mergeServiceFiles()
+    exclude("META-INF/maven/**")
+    exclude("META-INF/services/javax.imageio.spi.ImageInputStreamSpi")
+}
+
+tasks.register("proguardJar", ProGuardTask) {
+    dependsOn shadowJar
+
+    injars(shadowJar.archiveFile)
+    outjars(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}-bundled.jar"))
+    libraryjars("${System.getProperty('java.home')}/jmods")
+
+    // Keep all our classes, only shrink shaded dependencies
+    keep("class !org.redlance.platformtools.webp.shaded.**, org.redlance.** { *; }")
+
+    // Keep ImageIO SPI entry points (loaded via ServiceLoader)
+    keep("class * extends javax.imageio.spi.ImageReaderSpi { *; }")
+    keep("class * extends javax.imageio.spi.ImageWriterSpi { *; }")
+
+    dontnote()
+    ignorewarnings()
+    dontobfuscate()
+    optimizationpasses(10)
+    configuration(file("proguard.pro"))
+}
+
+assemble.dependsOn proguardJar
+downgradeJar.enabled = false
+
+shadow {
+    addShadowVariantIntoJavaComponent = false
+}
+
+publishing.publications.named("mavenJava") {
+    artifact(proguardJar.getOutJarFileCollection().singleFile) {
+        classifier = "bundled"
+        builtBy(tasks.named("proguardJar"))
+    }
+}

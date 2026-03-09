@@ -3,4 +3,10 @@ dependencies {
     implementation(project(":referer"))
     implementation(project(":favorites"))
     implementation(project(":progress"))
+    implementation(project(":webp"))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+    options.release.set(25)
 }
