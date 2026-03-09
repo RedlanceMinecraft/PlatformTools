@@ -28,7 +28,7 @@ public final class LibWebPLibrary {
     }
 
     private static @Nullable LibWebPLibrary tryLoad() {
-        for (String name : new String[]{"webp", "libwebp", "libwebp.so.7"}) {
+        for (String name : new String[]{"webp", "libwebp", "libwebp-7", "libwebp.so.7"}) {
             try {
                 return new LibWebPLibrary(SymbolLookup.libraryLookup(name, Arena.global()));
             } catch (Throwable ignored) {

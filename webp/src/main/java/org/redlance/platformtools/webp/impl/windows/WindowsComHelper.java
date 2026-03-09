@@ -63,9 +63,14 @@ public final class WindowsComHelper {
         try {
             SymbolLookup ole32 = SymbolLookup.libraryLookup("ole32", Arena.global());
 
-            MethodHandle coInitEx = LINKER.downcallHandle(ole32.find("CoInitializeEx").orElseThrow(),
-                    FunctionDescriptor.of(ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_INT));
-            coInitEx.invokeExact(MemorySegment.NULL, 0);
+            MethodHandle coInitEx = LINKER.downcallHandle(
+                    ole32.find("CoInitializeEx").orElseThrow(),
+                    FunctionDescriptor.of(
+                            ValueLayout.JAVA_INT, ValueLayout.ADDRESS, ValueLayout.JAVA_INT
+                    )
+            );
+            //noinspection unused — invokeExact requires matching return type
+            int hr = (int) coInitEx.invokeExact(MemorySegment.NULL, 0);
 
             return new WindowsComHelper(ole32);
         } catch (Throwable t) {
