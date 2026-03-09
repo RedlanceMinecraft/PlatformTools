@@ -7,7 +7,7 @@ dependencies {
     implementation(project(":referer"))
     implementation(project(":favorites"))
     implementation(project(":progress"))
-    compileOnly(project(":webp"))
+    implementation(project(":webp"))
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -20,6 +20,10 @@ jar {
 }
 
 shadowJar {
+    dependencies {
+        exclude(project(":webp"))
+    }
+
     dependsOn(":webp:proguardJar")
     from(zipTree(project(":webp").file("build/libs/PlatformTools-webp-${version}-bundled.jar")))
     mergeServiceFiles()

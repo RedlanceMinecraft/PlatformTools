@@ -1,0 +1,51 @@
+name: Test WebP
+
+on:
+  push:
+    branches: ['main', 'webp']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-webp:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Linux (libwebp)
+            install: sudo apt-get update && sudo apt-get install -y libwebp-dev
+            expected-decode: libwebp
+            expected-encode: libwebp
+          - os: ubuntu-latest
+            name: Linux (TwelveMonkeys)
+            expected-decode: Java ImageIO
+          - os: macos-latest
+            name: macOS (ImageIO)
+            expected-decode: macOS ImageIO
+          - os: windows-latest
+            name: Windows (WIC)
+            expected-decode: Windows WIC
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Install libwebp
+        if: matrix.install
+        run: ${{ matrix.install }}
+
+      - name: Make gradlew executable
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      - name: Run WebP tests
+        shell: bash
+        run: ./gradlew :webp:test -Dexpected.decode="${{ matrix.expected-decode }}" -Dexpected.encode="${{ matrix.expected-encode }}"
