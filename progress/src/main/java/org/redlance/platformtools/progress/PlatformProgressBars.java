@@ -41,6 +41,13 @@ public interface PlatformProgressBars extends BasePlatformFeature {
     PlatformProgressBar create() throws TooManyProgressBarsException;
 
     /**
+     * Returns the maximum number of progress bars that can be created simultaneously.
+     *
+     * @return maximum number of progress bars, or {@code -1} if progress bars are not supported
+     */
+    int getMaxBars();
+
+    /**
      * Represents a platform-specific progress bar that can be displayed
      * in native UI elements.
      */

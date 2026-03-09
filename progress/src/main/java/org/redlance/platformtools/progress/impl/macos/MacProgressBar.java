@@ -49,6 +49,11 @@ public final class MacProgressBar implements PlatformProgressBars {
     }
 
     @Override
+    public int getMaxBars() {
+        return MAX_BARS;
+    }
+
+    @Override
     public boolean isAvailable() {
         return true;
     }

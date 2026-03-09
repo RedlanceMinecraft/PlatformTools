@@ -182,9 +182,18 @@ public class TestingApp extends JFrame {
         JScrollPane scrollPane = new JScrollPane(barsPanel);
         dialog.add(scrollPane, BorderLayout.CENTER);
 
-        JButton addButton = new JButton("Add Progress Bar");
+        int maxBars = PlatformProgressBars.INSTANCE.getMaxBars();
+
+        JButton addButton = new JButton("Add Progress Bar" + (maxBars > 0 ? " (max " + maxBars + ")" : ""));
         addButton.addActionListener(event -> {
-            PlatformProgressBars.PlatformProgressBar bar = PlatformProgressBars.INSTANCE.create();
+            PlatformProgressBars.PlatformProgressBar bar;
+            try {
+                bar = PlatformProgressBars.INSTANCE.create();
+            } catch (PlatformProgressBars.TooManyProgressBarsException ex) {
+                JOptionPane.showMessageDialog(dialog, ex.getMessage(), "Limit reached", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             bar.setMaxValue(100);
 
             JPanel barPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));

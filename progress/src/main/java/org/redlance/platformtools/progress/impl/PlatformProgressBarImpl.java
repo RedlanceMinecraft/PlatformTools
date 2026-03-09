@@ -4,11 +4,14 @@ import com.sun.jna.Platform;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.progress.PlatformProgressBars;
 import org.redlance.platformtools.progress.impl.macos.MacProgressBar;
+import org.redlance.platformtools.progress.impl.toolkit.ToolkitProgressBar;
+
+import java.awt.Taskbar;
 
 public class PlatformProgressBarImpl implements PlatformProgressBars {
     private final @Nullable PlatformProgressBars nativeProgressBar = switch (Platform.getOSType()) {
         case Platform.MAC -> new MacProgressBar();
-        default -> null;
+        default -> createToolkitFallback();
     };
 
     @Override
@@ -18,8 +21,25 @@ public class PlatformProgressBarImpl implements PlatformProgressBars {
     }
 
     @Override
+    public int getMaxBars() {
+        if (this.nativeProgressBar == null) return -1;
+        return this.nativeProgressBar.getMaxBars();
+    }
+
+    @Override
     public boolean isAvailable() {
         return this.nativeProgressBar != null && this.nativeProgressBar.isAvailable();
+    }
+
+    private static @Nullable PlatformProgressBars createToolkitFallback() {
+        try {
+            if (Taskbar.isTaskbarSupported() && Taskbar.getTaskbar().isSupported(Taskbar.Feature.PROGRESS_VALUE)) {
+                return new ToolkitProgressBar();
+            }
+        } catch (Throwable ignored) {
+        }
+
+        return null;
     }
 
     private static final class UnsupportedProgressBar implements PlatformProgressBar {
