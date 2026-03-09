@@ -20,6 +20,7 @@ jobs:
             expected-encode: libwebp
           - os: ubuntu-latest
             name: Linux (TwelveMonkeys)
+            install: sudo apt-get remove -y 'libwebp*' || true
             expected-decode: Java ImageIO
           - os: macos-latest
             name: macOS (ImageIO)
@@ -39,7 +40,7 @@ jobs:
           distribution: temurin
           java-version: 25
 
-      - name: Install libwebp
+      - name: Setup native libraries
         if: matrix.install
         run: ${{ matrix.install }}
 

@@ -17,7 +17,31 @@ public final class WindowsCodecsDecoder implements PlatformWebPDecoder {
 
     public static @Nullable WindowsCodecsDecoder tryCreate() {
         WindowsComHelper com = WindowsComHelper.getInstance();
-        return com != null ? new WindowsCodecsDecoder(com) : null;
+        if (com == null) return null;
+
+        // Verify WebP decode support (codec may not be installed)
+        try (Arena arena = Arena.ofConfined()) {
+            MemorySegment factory = com.createFactory(arena);
+            if (factory == null) return null;
+
+            try {
+                MemorySegment decoder = comCreateObj(
+                        arena, factory, FACTORY_CREATE_DECODER,
+                        FunctionDescriptor.of(
+                                ValueLayout.JAVA_INT,
+                                ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS, ValueLayout.ADDRESS
+                        ),
+                        guidWebpContainer(arena), MemorySegment.NULL
+                );
+                comRelease(decoder);
+            } finally {
+                comRelease(factory);
+            }
+        } catch (Throwable t) {
+            return null;
+        }
+
+        return new WindowsCodecsDecoder(com);
     }
 
     @Override

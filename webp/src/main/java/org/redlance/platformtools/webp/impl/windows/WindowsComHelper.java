@@ -13,6 +13,7 @@ public final class WindowsComHelper {
     static final int IUNKNOWN_RELEASE = 2;
 
     // Decoder vtable indices
+    static final int FACTORY_CREATE_DECODER = 7;
     static final int FACTORY_CREATE_DECODER_FROM_STREAM = 4;
     static final int FACTORY_CREATE_FORMAT_CONVERTER = 10;
     static final int FACTORY_CREATE_STREAM = 14;
