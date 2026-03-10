@@ -45,14 +45,14 @@ repositories {
 
 dependencies {
     // Include only the modules you need:
-    implementation "org.redlance.platformtools:accent:4.0.0"
-    implementation "org.redlance.platformtools:referer:4.0.0"
-    implementation "org.redlance.platformtools:favorites:4.0.0"
-    implementation "org.redlance.platformtools:progress:4.0.0"
-    implementation "org.redlance.platformtools:webp:4.0.0"
+    implementation "org.redlance.platformtools:accent:4.1.1"
+    implementation "org.redlance.platformtools:referer:4.1.1"
+    implementation "org.redlance.platformtools:favorites:4.1.1"
+    implementation "org.redlance.platformtools:progress:4.1.1"
+    implementation "org.redlance.platformtools:webp:4.1.1"
 
     // For Java 8 (Downgraded version), add classifier:
-    // implementation("org.redlance.platformtools:accent:4.0.0:java8")
+    // implementation("org.redlance.platformtools:accent:4.1.1:java8")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 <dependency>
     <groupId>org.redlance.platformtools</groupId>
     <artifactId>accent</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.1</version>
 </dependency>
 ```
 
@@ -211,10 +211,10 @@ The `webp` module has two variants:
 
 ```groovy
 // Standard — requires platform support or libwebp on library path
-implementation "org.redlance.platformtools:webp:4.0.0"
+implementation "org.redlance.platformtools:webp:4.1.1"
 
 // Bundled — self-contained, works everywhere (decode only)
-implementation "org.redlance.platformtools:webp:4.0.0:bundled"
+implementation "org.redlance.platformtools:webp:4.1.1:bundled"
 ```
 
 ```java
