@@ -58,9 +58,7 @@ tasks.register("proguardJar", ProGuardTask) {
     injars(shadowJar.archiveFile)
     outjars(layout.buildDirectory.file("libs/${base.archivesName.get()}-${version}-bundled.jar"))
 
-    def jmodsPath = "${System.getProperty('java.home')}/jmods"
-    println("ProGuard libraryjars: ${jmodsPath} (exists: ${file(jmodsPath).exists()}, files: ${file(jmodsPath).exists() ? file(jmodsPath).listFiles()?.length : 'N/A'})")
-    libraryjars(jmodsPath)
+    libraryjars("${System.getProperty('java.home')}/jmods")
 
     // Keep all our classes, only shrink shaded dependencies
     keep("class !org.redlance.platformtools.webp.shaded.**, org.redlance.** { *; }")
