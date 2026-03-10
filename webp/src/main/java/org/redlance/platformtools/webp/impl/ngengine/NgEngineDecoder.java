@@ -47,7 +47,7 @@ public final class NgEngineDecoder implements PlatformWebPDecoder {
                 argb[i] = (a << 24) | (r << 16) | (g << 8) | b;
             }
 
-            return new DecodedImage(argb, decoded.width, decoded.height);
+            return DecodedImage.ofArgb(argb, decoded.width, decoded.height);
         } catch (Exception e) {
             throw new IllegalStateException("ngengine WebP decode failed", e);
         }

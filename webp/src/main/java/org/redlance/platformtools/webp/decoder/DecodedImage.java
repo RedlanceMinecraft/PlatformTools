@@ -1,22 +1,36 @@
 package org.redlance.platformtools.webp.decoder;
 
 import org.jetbrains.annotations.Nullable;
+import org.redlance.platformtools.webp.impl.image.DecodedImageImpl;
+import org.redlance.platformtools.webp.impl.image.LazyDecodedImage;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 /**
  * Decoded image with raw pixel data.
+ *
+ * <p>Can be created in three ways:
+ * <ul>
+ *     <li>{@link #ofArgb(int[], int, int)} — from pre-decoded ARGB pixels (eager)</li>
+ *     <li>{@link #fromWebP(byte[])} — from raw WebP bytes (lazy, decoded on first access)</li>
+ *     <li>{@link #fromPng(byte[])} — from raw PNG bytes (eager, with cached PNG output)</li>
+ * </ul>
+ *
+ * <p>All variants support WebP byte caching via {@link #cacheWebP(Float, byte[])}
+ * and retrieval via {@link #toWebP(Float)}.
+ * Use {@link #isDecoded()} to check whether pixel data has been materialized.
  */
 @SuppressWarnings("unused") // API
-public final class DecodedImage {
-    private final int[] argb;
-    private final int width;
-    private final int height;
+public abstract sealed class DecodedImage permits LazyDecodedImage, DecodedImageImpl {
     private byte @Nullable [] png;
+
+    private Float webpQuality;
+    private byte @Nullable [] webp;
 
     /**
      * Creates a decoded image from packed ARGB pixels.
@@ -25,11 +39,22 @@ public final class DecodedImage {
      *               length must be {@code width * height}
      * @param width  image width in pixels
      * @param height image height in pixels
+     * @return decoded image with immediately available pixel data
      */
-    public DecodedImage(int[] argb, int width, int height) {
-        this.argb = argb;
-        this.width = width;
-        this.height = height;
+    public static DecodedImage ofArgb(int[] argb, int width, int height) {
+        return new DecodedImageImpl(argb, width, height);
+    }
+
+    /**
+     * Wraps raw WebP bytes for on-demand decoding.
+     * Pixel data will not be decoded until {@link #argb()}, {@link #width()},
+     * {@link #height()} or {@link #toPng()} is called.
+     *
+     * @param webpData raw WebP file bytes
+     * @return decoded image with deferred pixel decoding
+     */
+    public static DecodedImage fromWebP(byte[] webpData) {
+        return new LazyDecodedImage(webpData);
     }
 
     /**
@@ -46,28 +71,43 @@ public final class DecodedImage {
 
             int w = img.getWidth();
             int h = img.getHeight();
-            DecodedImage decoded = new DecodedImage(img.getRGB(0, 0, w, h, null, 0, w), w, h);
+            DecodedImage decoded = ofArgb(img.getRGB(0, 0, w, h, null, 0, w), w, h);
             decoded.png = pngData;
             return decoded;
         }
     }
 
-    public int[] argb() {
-        return this.argb;
-    }
+    /**
+     * Returns the ARGB pixel data as packed integers.
+     * If created via {@code fromWebP}, triggers decoding on first call.
+     *
+     * @return pixel data as packed ARGB integers, length is {@code width() * height()}
+     */
+    public abstract int[] argb();
 
-    public int width() {
-        return this.width;
-    }
+    /**
+     * Returns the image width in pixels.
+     * If created via {@code fromWebP}, triggers decoding on first call.
+     */
+    public abstract int width();
 
-    public int height() {
-        return this.height;
-    }
+    /**
+     * Returns the image height in pixels.
+     * If created via {@code fromWebP}, triggers decoding on first call.
+     */
+    public abstract int height();
+
+    /**
+     * Returns {@code true} if the pixel data has been decoded.
+     * Always {@code true} for images created via {@link #ofArgb(int[], int, int)}
+     * or {@link #fromPng(byte[])}.
+     */
+    public abstract boolean isDecoded();
 
     /**
      * Returns {@code true} if PNG bytes are already cached.
      */
-    public boolean isPngCached() {
+    public final boolean isPngCached() {
         return this.png != null;
     }
 
@@ -77,15 +117,41 @@ public final class DecodedImage {
      * @return PNG file bytes
      * @throws IOException if encoding fails
      */
-    public byte[] toPng() throws IOException {
+    public final byte[] toPng() throws IOException {
         if (this.png != null) return this.png;
 
-        BufferedImage img = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-        img.setRGB(0, 0, this.width, this.height, this.argb, 0, this.width);
+        int[] pixels = argb();
+        BufferedImage img = new BufferedImage(this.width(), this.height(), BufferedImage.TYPE_INT_ARGB);
+        img.setRGB(0, 0, this.width(), this.height(), pixels, 0, this.width());
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             ImageIO.write(img, "png", out);
             return this.png = out.toByteArray();
+        }
+    }
+
+    /**
+     * Returns cached WebP bytes if available and encoded with the given quality.
+     *
+     * @param quality the expected encoding quality ({@code null} for lossless)
+     * @return raw WebP file bytes, or {@code null} if not cached or quality doesn't match
+     */
+    public final byte @Nullable [] toWebP(@Nullable Float quality) {
+        if (this.webp == null || !Objects.equals(quality, this.webpQuality)) return null;
+        return this.webp;
+    }
+
+    /**
+     * Caches encoded WebP bytes for later retrieval via {@link #toWebP(Float)}.
+     * If the cache already contains bytes with the same quality, this is a no-op.
+     *
+     * @param quality the quality used for encoding ({@code null} for lossless)
+     * @param webp    the encoded WebP bytes
+     */
+    public final void cacheWebP(@Nullable Float quality, byte[] webp) {
+        if (this.webp == null || !Objects.equals(quality, this.webpQuality)) {
+            this.webpQuality = quality;
+            this.webp = webp;
         }
     }
 }

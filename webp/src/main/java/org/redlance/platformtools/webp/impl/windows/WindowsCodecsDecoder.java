@@ -143,7 +143,7 @@ public final class WindowsCodecsDecoder implements PlatformWebPDecoder {
                         MemorySegment.NULL, stride, bufSize, buffer
                 ), "CopyPixels");
 
-                return new DecodedImage(buffer.toArray(ValueLayout.JAVA_INT), w, h);
+                return DecodedImage.ofArgb(buffer.toArray(ValueLayout.JAVA_INT), w, h);
             } finally {
                 if (converter != null) comRelease(converter);
                 if (frame != null) comRelease(frame);

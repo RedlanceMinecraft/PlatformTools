@@ -71,7 +71,7 @@ public final class LibWebPDecoder implements PlatformWebPDecoder {
             );
             this.lib.webPFree.invokeExact(result);
 
-            return new DecodedImage(pixels, w, h);
+            return DecodedImage.ofArgb(pixels, w, h);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable t) {

@@ -139,7 +139,7 @@ public final class MacOSImageIODecoder implements PlatformWebPDecoder {
             this.fw.cfRelease.invokeExact(source);
             this.fw.cfRelease.invokeExact(cfData);
 
-            return new DecodedImage(argb, (int) w, (int) h);
+            return DecodedImage.ofArgb(argb, (int) w, (int) h);
         } catch (RuntimeException | Error e) {
             throw e;
         } catch (Throwable t) {

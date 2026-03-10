@@ -1,5 +1,6 @@
 package org.redlance.platformtools.webp.encoder;
 
+import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.impl.PlatformWebPEncoderImpl;
 
 /**
@@ -52,6 +53,39 @@ public interface PlatformWebPEncoder {
      * @throws UnsupportedOperationException if no backend is available
      */
     byte[] encodeLossy(int[] argb, int width, int height, float quality);
+
+    /**
+     * Encodes a {@link DecodedImage} into a lossless WebP image.
+     *
+     * @param image the decoded image to encode
+     * @return WebP file bytes
+     * @throws IllegalStateException         if encoding fails
+     * @throws UnsupportedOperationException if no backend is available
+     */
+    default byte[] encodeLossless(DecodedImage image) {
+        byte[] cached = image.toWebP(null);
+        if (cached != null) return cached;
+        byte[] encoded = encodeLossless(image.argb(), image.width(), image.height());
+        image.cacheWebP(null, encoded);
+        return encoded;
+    }
+
+    /**
+     * Encodes a {@link DecodedImage} into a lossy WebP image.
+     *
+     * @param image   the decoded image to encode
+     * @param quality compression quality, {@code 0.0f} (smallest) to {@code 1.0f} (best)
+     * @return WebP file bytes
+     * @throws IllegalStateException         if encoding fails
+     * @throws UnsupportedOperationException if no backend is available
+     */
+    default byte[] encodeLossy(DecodedImage image, float quality) {
+        byte[] cached = image.toWebP(quality);
+        if (cached != null) return cached;
+        byte[] encoded = encodeLossy(image.argb(), image.width(), image.height(), quality);
+        image.cacheWebP(quality, encoded);
+        return encoded;
+    }
 
     boolean isAvailable();
 }
