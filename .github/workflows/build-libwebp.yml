@@ -1,0 +1,165 @@
+name: Build libwebp
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-libwebp.yml'
+  workflow_dispatch:
+    inputs:
+      libwebp_version:
+        description: 'libwebp version tag (e.g. v1.6.0)'
+        required: false
+        default: 'v1.6.0'
+
+env:
+  LIBWEBP_VERSION: ${{ inputs.libwebp_version || 'v1.6.0' }}
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: linux
+            artifact: libwebp.so
+          - os: windows-latest
+            target: windows
+            artifact: libwebp.dll
+          - os: macos-latest
+            target: macos
+            artifact: libwebp.dylib
+
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Clone libwebp
+        run: git clone --depth 1 --branch ${{ env.LIBWEBP_VERSION }} https://chromium.googlesource.com/webm/libwebp
+
+      - name: Patch out decoder
+        shell: bash
+        run: |
+          cd libwebp
+          sed -i.bak 's/\$<TARGET_OBJECTS:webpdecode>//' CMakeLists.txt
+          sed -i.bak 's/add_library(sharpyuv /add_library(sharpyuv STATIC /' CMakeLists.txt
+
+      - name: Create export lists
+        shell: bash
+        run: |
+          cat > libwebp-exports.txt <<'EOF'
+          { global: WebPEncodeLosslessBGRA; WebPFree; local: *; };
+          EOF
+          cat > libwebp-exports-macos.txt <<'EOF'
+          _WebPEncodeLosslessBGRA
+          _WebPFree
+          EOF
+          cat > libwebp-exports.def <<'EOF'
+          EXPORTS
+              WebPEncodeLosslessBGRA
+              WebPFree
+          EOF
+
+      - name: Build (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          cd libwebp
+          mkdir build && cd build
+
+          if [ "${{ matrix.target }}" = "macos" ]; then
+            EXTRA_FLAGS="-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_SHARED_LINKER_FLAGS=-Wl,-exported_symbols_list,${{ github.workspace }}/libwebp-exports-macos.txt,-dead_strip"
+          else
+            EXTRA_FLAGS="-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--version-script=${{ github.workspace }}/libwebp-exports.txt,--gc-sections"
+          fi
+
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
+            -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables" \
+            -DBUILD_SHARED_LIBS=ON \
+            -DWEBP_BUILD_ANIM_UTILS=OFF \
+            -DWEBP_BUILD_CWEBP=OFF \
+            -DWEBP_BUILD_DWEBP=OFF \
+            -DWEBP_BUILD_GIF2WEBP=OFF \
+            -DWEBP_BUILD_IMG2WEBP=OFF \
+            -DWEBP_BUILD_VWEBP=OFF \
+            -DWEBP_BUILD_WEBPINFO=OFF \
+            -DWEBP_BUILD_WEBPMUX=OFF \
+            -DWEBP_BUILD_EXTRAS=OFF \
+            $EXTRA_FLAGS
+          cmake --build . --target webp --config MinSizeRel
+          if [ "${{ matrix.target }}" = "macos" ]; then
+            strip -x libwebp.* 2>/dev/null || true
+          else
+            strip -s libwebp.* 2>/dev/null || true
+          fi
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd libwebp
+          mkdir build && cd build
+          cmake .. `
+            -DCMAKE_BUILD_TYPE=MinSizeRel `
+            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON `
+            -DCMAKE_C_FLAGS="/Gw /DWEBP_EXTERN=extern" `
+            -DBUILD_SHARED_LIBS=ON `
+            -DCMAKE_SHARED_LINKER_FLAGS="/DEF:${{ github.workspace }}/libwebp-exports.def /OPT:REF,ICF" `
+            -DWEBP_BUILD_ANIM_UTILS=OFF `
+            -DWEBP_BUILD_CWEBP=OFF `
+            -DWEBP_BUILD_DWEBP=OFF `
+            -DWEBP_BUILD_GIF2WEBP=OFF `
+            -DWEBP_BUILD_IMG2WEBP=OFF `
+            -DWEBP_BUILD_VWEBP=OFF `
+            -DWEBP_BUILD_WEBPINFO=OFF `
+            -DWEBP_BUILD_WEBPMUX=OFF `
+            -DWEBP_BUILD_EXTRAS=OFF
+          cmake --build . --target webp --config MinSizeRel
+
+      - name: Copy artifact
+        shell: bash
+        run: |
+          mkdir -p output
+          if [ "${{ matrix.target }}" = "windows" ]; then
+            cp libwebp/build/MinSizeRel/${{ matrix.artifact }} output/
+          else
+            cp libwebp/build/${{ matrix.artifact }} output/
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libwebp-${{ matrix.target }}
+          path: output/${{ matrix.artifact }}
+
+  commit:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Place natives
+        run: |
+          mkdir -p webp/src/main/resources/natives/{linux,windows,macos}
+          cp artifacts/libwebp-linux/libwebp.so webp/src/main/resources/natives/linux/
+          cp artifacts/libwebp-windows/libwebp.dll webp/src/main/resources/natives/windows/
+          cp artifacts/libwebp-macos/libwebp.dylib webp/src/main/resources/natives/macos/
+
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add webp/src/main/resources/natives/
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "Update bundled libwebp ${{ env.LIBWEBP_VERSION }}"
+          git push

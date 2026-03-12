@@ -14,10 +14,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 class LibWebPTest {
     @Test
-    void encoderAvailableWithDecoder() {
-        PlatformWebPDecoder dec = LibWebPDecoder.tryCreate();
-        assumeTrue(dec != null, "libwebp not available");
-        assertNotNull(LibWebPEncoder.tryCreate(), "libwebp encoder should be available when decoder is");
+    void encoderAvailable() {
+        assertNotNull(LibWebPEncoder.tryCreate(), "libwebp encoder should be available (bundled or system)");
     }
 
     @Test
@@ -44,6 +42,18 @@ class LibWebPTest {
         assertEquals(TestUtils.W, decoded.width());
         assertEquals(TestUtils.H, decoded.height());
         assertEquals(original.length, decoded.argb().length);
+    }
+
+    @Test
+    void bundledLosslessRoundtrip() {
+        LibWebPEncoder enc = LibWebPEncoder.tryCreate();
+        assumeTrue(enc != null, "libwebp encoder not available");
+        assumeTrue(PlatformWebPDecoder.INSTANCE.isAvailable(), "No decoder available");
+
+        int[] original = TestUtils.generateTestImage();
+        byte[] encoded = enc.encodeLossless(original, TestUtils.W, TestUtils.H);
+        DecodedImage decoded = PlatformWebPDecoder.INSTANCE.decode(encoded);
+        assertArrayEquals(original, decoded.argb(), "Lossless roundtrip pixels must match exactly");
     }
 
     @Test

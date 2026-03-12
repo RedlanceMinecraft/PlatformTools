@@ -12,7 +12,7 @@ public final class LibWebPEncoder implements PlatformWebPEncoder {
     // size_t WebPEncodeLosslessBGRA(const uint8_t* bgra, int w, int h, int stride, uint8_t** output)
     private final MethodHandle webPEncodeLosslessBGRA;
     // size_t WebPEncodeBGRA(const uint8_t* bgra, int w, int h, int stride, float quality, uint8_t** output)
-    private final MethodHandle webPEncodeBGRA;
+    private final @Nullable MethodHandle webPEncodeBGRA;
 
     private LibWebPEncoder(LibWebPLibrary lib) {
         this.lib = lib;
@@ -27,24 +27,24 @@ public final class LibWebPEncoder implements PlatformWebPEncoder {
                         ValueLayout.ADDRESS
                 )
         );
-        this.webPEncodeBGRA = linker.downcallHandle(
-                lib.lookup.find("WebPEncodeBGRA").orElseThrow(),
+        this.webPEncodeBGRA = lib.lookup.find("WebPEncodeBGRA").map(symbol -> linker.downcallHandle(symbol,
                 FunctionDescriptor.of(
                         ValueLayout.JAVA_LONG, ValueLayout.ADDRESS,
                         ValueLayout.JAVA_INT, ValueLayout.JAVA_INT, ValueLayout.JAVA_INT,
                         ValueLayout.JAVA_FLOAT, ValueLayout.ADDRESS
                 )
-        );
+        )).orElse(null);
     }
 
     public static @Nullable LibWebPEncoder tryCreate() {
         LibWebPLibrary lib = LibWebPLibrary.getInstance();
-        return lib != null ? new LibWebPEncoder(lib) : null;
+        if (lib == null || lib.lookup.find("WebPEncodeLosslessBGRA").isEmpty()) return null;
+        return new LibWebPEncoder(lib);
     }
 
     @Override
     public String backendName() {
-        return "libwebp";
+        return this.webPEncodeBGRA != null ? "libwebp" : "libwebp (lossless-only)";
     }
 
     @Override
@@ -76,6 +76,7 @@ public final class LibWebPEncoder implements PlatformWebPEncoder {
 
     @Override
     public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
+        if (this.webPEncodeBGRA == null) return encodeLossless(argb, width, height);
         try (Arena arena = Arena.ofConfined()) {
             MemorySegment outputPtr = arena.allocate(ValueLayout.ADDRESS);
 

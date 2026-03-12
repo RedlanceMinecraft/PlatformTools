@@ -2,12 +2,12 @@ name: Test WebP
 
 on:
   push:
-    branches:
-      - 'main'
     paths:
       - 'webp/**'
       - '.github/workflows/test-webp.yml'
-  pull_request:
+  workflow_run:
+    workflows: [Build libwebp]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
@@ -25,13 +25,16 @@ jobs:
             name: Linux (NgEngine)
             install: sudo find /usr -name 'libwebp*.so*' -exec mv {} {}.disabled \;
             expected-decode: Java (ngengine)
+            expected-encode: libwebp (lossless-only)
           - os: macos-latest
             name: macOS (ImageIO)
             expected-decode: macOS ImageIO
+            expected-encode: libwebp (lossless-only)
           - os: windows-latest
             name: Windows (WIC)
             install: winget install --id 9PG2DK419DRG --accept-package-agreements --accept-source-agreements --source msstore --silent
             expected-decode: Windows WIC
+            expected-encode: libwebp (lossless-only)
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}

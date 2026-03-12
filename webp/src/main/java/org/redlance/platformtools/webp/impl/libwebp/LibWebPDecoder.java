@@ -39,7 +39,8 @@ public final class LibWebPDecoder implements PlatformWebPDecoder {
 
     public static @Nullable LibWebPDecoder tryCreate() {
         LibWebPLibrary lib = LibWebPLibrary.getInstance();
-        return lib != null ? new LibWebPDecoder(lib) : null;
+        if (lib == null || lib.lookup.find("WebPDecodeARGB").isEmpty()) return null;
+        return new LibWebPDecoder(lib);
     }
 
     @Override

@@ -3,6 +3,8 @@ package org.redlance.platformtools.webp;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
 
+import java.util.function.Consumer;
+
 /**
  * Diagnostics utility for WebP backend status.
  *
@@ -15,86 +17,73 @@ public final class WebPDiagnostics {
     }
 
     /**
-     * Returns a human-readable summary of the current WebP backend status,
-     * including active backends and suggestions for improvement.
+     * Sends a human-readable summary of the current WebP backend status
+     * line-by-line to the given consumer.
+     *
+     * @param output line consumer (e.g. {@code logger::info})
      */
-    public static String summary() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("=== WebP Backend Status ===\n");
+    public static void summary(Consumer<String> output) {
+        output.accept("=== WebP Backend Status ===");
 
-        appendDecoderStatus(sb);
-        sb.append('\n');
-        appendEncoderStatus(sb);
-        sb.append('\n');
-        appendSuggestions(sb);
-
-        return sb.toString();
+        appendDecoderStatus(output);
+        appendEncoderStatus(output);
+        appendSuggestions(output);
     }
 
-    private static void appendDecoderStatus(StringBuilder sb) {
+    private static void appendDecoderStatus(Consumer<String> output) {
         PlatformWebPDecoder decoder = PlatformWebPDecoder.INSTANCE;
-        sb.append("Decoder: ");
-        if (decoder.isAvailable()) {
-            sb.append(decoder.backendName());
-        } else {
-            sb.append("UNAVAILABLE");
-        }
-        sb.append('\n');
+        output.accept("Decoder: " + (decoder.isAvailable() ? decoder.backendName() : "UNAVAILABLE"));
     }
 
-    private static void appendEncoderStatus(StringBuilder sb) {
+    private static void appendEncoderStatus(Consumer<String> output) {
         PlatformWebPEncoder encoder = PlatformWebPEncoder.INSTANCE;
-        sb.append("Encoder: ");
-        if (encoder.isAvailable()) {
-            sb.append(encoder.backendName());
-        } else {
-            sb.append("UNAVAILABLE");
-        }
-        sb.append('\n');
+        output.accept("Encoder: " + (encoder.isAvailable() ? encoder.backendName() : "UNAVAILABLE"));
     }
 
-    private static void appendSuggestions(StringBuilder sb) {
+    private static void appendSuggestions(Consumer<String> output) {
         PlatformWebPDecoder decoder = PlatformWebPDecoder.INSTANCE;
         PlatformWebPEncoder encoder = PlatformWebPEncoder.INSTANCE;
 
         boolean decoderNative = decoder.isAvailable() && "libwebp".equals(decoder.backendName());
-        boolean encoderAvailable = encoder.isAvailable();
+        boolean encoderFull = encoder.isAvailable() && "libwebp".equals(encoder.backendName());
 
-        if (decoderNative && encoderAvailable) {
-            sb.append("Status: optimal (libwebp provides both encode and decode)\n");
+        if (decoderNative && encoderFull) {
+            output.accept("Status: optimal (libwebp provides both encode and decode)");
             return;
         }
 
-        sb.append("Suggestions:\n");
+        output.accept("Suggestions:");
         String os = System.getProperty("os.name", "").toLowerCase();
 
-        sb.append("- Install libwebp for native encode/decode support:\n");
         if (os.contains("mac")) {
-            sb.append("    brew install webp\n");
+            output.accept("- Install libwebp for full native encode/decode support: brew install webp");
         } else if (os.contains("linux")) {
-            sb.append("    apt install libwebp-dev  (Debian/Ubuntu)\n");
-            sb.append("    dnf install libwebp-devel  (Fedora/RHEL)\n");
+            output.accept("- Install libwebp for full native encode/decode support:");
+            output.accept("    apt install libwebp-dev  (Debian/Ubuntu)");
+            output.accept("    dnf install libwebp-devel  (Fedora/RHEL)");
         } else if (os.contains("win")) {
-            sb.append("    Download from https://developers.google.com/speed/webp/download\n");
-            sb.append("    and add the bin/ directory to PATH\n");
+            output.accept("- Install libwebp for full native encode/decode support:");
+            output.accept("    Download from https://developers.google.com/speed/webp/download");
+            output.accept("    and add the bin/ directory to PATH");
         }
 
         if (decoder.isAvailable() && !decoderNative) {
             String backend = decoder.backendName();
             if (backend.contains("ngengine")) {
-                sb.append("- Decoder uses pure-Java fallback (slower than native libwebp)\n");
+                output.accept("- Decoder uses pure-Java fallback (slower than native libwebp)");
             } else if (backend.contains("macOS") || backend.contains("Windows")) {
-                sb.append("- Decoder uses platform API (").append(backend).append(")\n");
-                sb.append("  libwebp may offer better performance and consistency\n");
+                output.accept("- Decoder uses platform API (" + backend + "), libwebp may offer better performance and consistency");
             }
         }
 
         if (!decoder.isAvailable()) {
-            sb.append("- No decoder available! Add the ngengine bundled dependency as a fallback\n");
+            output.accept("- No decoder available! Add the ngengine bundled dependency as a fallback");
         }
 
-        if (!encoderAvailable) {
-            sb.append("- No encoder available — libwebp is the only supported encoder backend\n");
+        if (encoder.isAvailable() && !encoderFull) {
+            output.accept("- Encoder supports lossless mode only (bundled libwebp), install full libwebp for lossy encoding support");
+        } else if (!encoder.isAvailable()) {
+            output.accept("- No encoder available — libwebp is the only supported encoder backend");
         }
     }
 }
