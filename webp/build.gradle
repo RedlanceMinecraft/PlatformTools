@@ -70,7 +70,14 @@ tasks.register("proguardJar", ProGuardTask) {
     configuration(file("proguard.pro"))
 }
 
-assemble.dependsOn proguardJar
+tasks.register("bundledLiteJar", Jar) {
+    dependsOn proguardJar
+    from(zipTree(proguardJar.getOutJarFileCollection().singleFile))
+    exclude 'natives/**'
+    archiveClassifier.set("bundled-lite")
+}
+
+assemble.dependsOn proguardJar, bundledLiteJar
 downgradeJar.enabled = false
 
 shadow {
@@ -81,5 +88,9 @@ publishing.publications.named("mavenJava") {
     artifact(proguardJar.getOutJarFileCollection().singleFile) {
         classifier = "bundled"
         builtBy(tasks.named("proguardJar"))
+    }
+    artifact(tasks.named("bundledLiteJar")) {
+        classifier = "bundled-lite"
+        builtBy(tasks.named("bundledLiteJar"))
     }
 }

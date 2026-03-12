@@ -205,16 +205,27 @@ Decoder priority (first available wins):
 3. **Windows WIC** — Windows Imaging Component via FFM (decode only, requires WebP codec from MS Store)
 4. **ngengine** — pure-Java fallback ([image-webp-java](https://github.com/NostrGameEngine/image-webp-java), decode only, ~92 KB bundled)
 
-The `webp` module has two variants:
-- **Standard** (`webp`) — uses platform-native APIs or system-installed libwebp. Zero bundled dependencies.
-- **Bundled** (`webp` with classifier `bundled`) — includes a shaded and ProGuard-optimized [ngengine image-webp-java](https://github.com/NostrGameEngine/image-webp-java) decoder (~92 KB). Pixel-exact on all platforms without native libraries.
+Encoder priority:
+1. **libwebp** — system-installed native library (lossy + lossless)
+2. **libwebp (lossless-only)** — bundled native encoder (lossless only, included in standard and `bundled` variants)
+
+The `webp` module has three variants:
+
+| Variant | Classifier | Natives | ngengine | Use case |
+|---------|------------|---------|----------|----------|
+| **Standard** | — | bundled libwebp (lossless encoder) | — | Platform with native decoder (macOS/Windows) or system libwebp |
+| **Bundled** | `bundled` | bundled libwebp (lossless encoder) | shaded + ProGuard | Self-contained, works everywhere |
+| **Bundled Lite** | `bundled-lite` | — | shaded + ProGuard | Minimal size, no native binaries |
 
 ```groovy
-// Standard — requires platform support or libwebp on library path
+// Standard — bundled lossless encoder, requires platform decoder or system libwebp for decoding
 implementation "org.redlance.platformtools:webp:4.1.1"
 
-// Bundled — self-contained, works everywhere (decode only)
+// Bundled — self-contained with ngengine decoder + bundled lossless encoder
 implementation "org.redlance.platformtools:webp:4.1.1:bundled"
+
+// Bundled Lite — ngengine decoder only, no native binaries
+implementation "org.redlance.platformtools:webp:4.1.1:bundled-lite"
 ```
 
 ```java
