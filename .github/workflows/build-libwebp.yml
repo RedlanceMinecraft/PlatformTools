@@ -77,7 +77,7 @@ jobs:
           cmake .. \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
-            -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables -Os" \
+            -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables -Oz" \
             -DBUILD_SHARED_LIBS=ON \
             -DWEBP_BUILD_ANIM_UTILS=OFF \
             -DWEBP_BUILD_CWEBP=OFF \
@@ -90,7 +90,7 @@ jobs:
             -DWEBP_BUILD_EXTRAS=OFF \
             $EXTRA_FLAGS
           cmake --build . --target webp --config MinSizeRel
-          strip -x libwebp.* 2>/dev/null || true
+          strip -s libwebp.* 2>/dev/null || true
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
