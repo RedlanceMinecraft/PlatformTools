@@ -4,6 +4,7 @@ import org.redlance.platformtools.accent.PlatformAccent;
 import org.redlance.platformtools.favorites.PlatformFinderFavorites;
 import org.redlance.platformtools.progress.PlatformProgressBars;
 import org.redlance.platformtools.referer.PlatformFileReferer;
+import org.redlance.platformtools.webp.WebPDiagnostics;
 import org.redlance.platformtools.webp.decoder.DecodedImage;
 import org.redlance.platformtools.webp.decoder.PlatformWebPDecoder;
 import org.redlance.platformtools.webp.encoder.PlatformWebPEncoder;
@@ -311,6 +312,10 @@ public class TestingApp extends JFrame {
             }
 
             log.append("\n");
+            WebPDiagnostics.summary(s -> {
+                log.append(s);
+                log.append("\n");
+            });
         });
         buttons.add(probeBtn);
 
