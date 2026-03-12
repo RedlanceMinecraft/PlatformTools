@@ -5,6 +5,9 @@ on:
     paths:
       - 'webp/**'
       - '.github/workflows/test-webp.yml'
+  workflow_run:
+    workflows: [Build libwebp]
+    types: [completed]
   workflow_dispatch:
 
 jobs:
