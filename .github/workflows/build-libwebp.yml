@@ -104,7 +104,7 @@ jobs:
           cmake .. `
             -DCMAKE_BUILD_TYPE=MinSizeRel `
             -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON `
-            -DCMAKE_C_FLAGS="/Gw" `
+            -DCMAKE_C_FLAGS="/Gw /DWEBP_EXTERN=extern" `
             -DBUILD_SHARED_LIBS=ON `
             -DCMAKE_SHARED_LINKER_FLAGS="/DEF:${{ github.workspace }}/libwebp-exports.def /OPT:REF,ICF" `
             -DWEBP_BUILD_ANIM_UTILS=OFF `
