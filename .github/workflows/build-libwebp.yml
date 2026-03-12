@@ -76,6 +76,7 @@ jobs:
 
           cmake .. \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
+            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
             -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables -Os" \
             -DBUILD_SHARED_LIBS=ON \
             -DWEBP_BUILD_ANIM_UTILS=OFF \
@@ -98,6 +99,7 @@ jobs:
           mkdir build && cd build
           cmake .. `
             -DCMAKE_BUILD_TYPE=MinSizeRel `
+            -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON `
             -DCMAKE_C_FLAGS="/Gw" `
             -DBUILD_SHARED_LIBS=ON `
             -DCMAKE_SHARED_LINKER_FLAGS="/DEF:${{ github.workspace }}/libwebp-exports.def /OPT:REF,ICF" `
