@@ -88,7 +88,7 @@ jobs:
             -DWEBP_BUILD_WEBPMUX=OFF \
             -DWEBP_BUILD_EXTRAS=OFF \
             $EXTRA_FLAGS
-          cmake --build . --config MinSizeRel
+          cmake --build . --target webp --config MinSizeRel
           strip -x libwebp.* 2>/dev/null || true
 
       - name: Build (Windows)
@@ -109,7 +109,7 @@ jobs:
             -DWEBP_BUILD_WEBPINFO=OFF `
             -DWEBP_BUILD_WEBPMUX=OFF `
             -DWEBP_BUILD_EXTRAS=OFF
-          cmake --build . --config MinSizeRel
+          cmake --build . --target webp --config MinSizeRel
 
       - name: Copy artifact
         shell: bash
