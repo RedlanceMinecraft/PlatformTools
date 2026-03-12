@@ -44,7 +44,7 @@ jobs:
         run: |
           cd libwebp
           sed -i.bak 's/\$<TARGET_OBJECTS:webpdecode>//' CMakeLists.txt
-          sed -i.bak 's/target_link_libraries(webp sharpyuv)//' CMakeLists.txt
+          sed -i.bak 's/add_library(sharpyuv /add_library(sharpyuv STATIC /' CMakeLists.txt
 
       - name: Create export lists
         shell: bash
