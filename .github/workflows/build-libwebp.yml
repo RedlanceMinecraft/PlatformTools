@@ -92,7 +92,11 @@ jobs:
             -DWEBP_BUILD_EXTRAS=OFF \
             $EXTRA_FLAGS
           cmake --build . --target webp --config MinSizeRel
-          strip -s libwebp.* 2>/dev/null || true
+          if [ "${{ matrix.target }}" = "macos" ]; then
+            strip -x libwebp.* 2>/dev/null || true
+          else
+            strip -s libwebp.* 2>/dev/null || true
+          fi
 
       - name: Build (Windows)
         if: runner.os == 'Windows'
