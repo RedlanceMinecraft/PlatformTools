@@ -116,7 +116,7 @@ jobs:
         run: |
           mkdir -p output
           if [ "${{ matrix.target }}" = "windows" ]; then
-            cp libwebp/build/MinSizeRel/webp.dll output/libwebp.dll
+            cp libwebp/build/MinSizeRel/${{ matrix.artifact }} output/
           else
             cp libwebp/build/${{ matrix.artifact }} output/
           fi
