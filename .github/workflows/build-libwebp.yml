@@ -70,16 +70,14 @@ jobs:
 
           if [ "${{ matrix.target }}" = "macos" ]; then
             EXTRA_FLAGS="-DCMAKE_OSX_ARCHITECTURES=arm64 -DCMAKE_SHARED_LINKER_FLAGS=-Wl,-exported_symbols_list,${{ github.workspace }}/libwebp-exports-macos.txt,-dead_strip"
-            OPT_FLAG="-Os"
           else
             EXTRA_FLAGS="-DCMAKE_SHARED_LINKER_FLAGS=-Wl,--version-script=${{ github.workspace }}/libwebp-exports.txt,--gc-sections"
-            OPT_FLAG="-Oz"
           fi
 
           cmake .. \
             -DCMAKE_BUILD_TYPE=MinSizeRel \
             -DCMAKE_INTERPROCEDURAL_OPTIMIZATION=ON \
-            -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables $OPT_FLAG" \
+            -DCMAKE_C_FLAGS="-ffunction-sections -fdata-sections -fvisibility=hidden -fno-asynchronous-unwind-tables" \
             -DBUILD_SHARED_LIBS=ON \
             -DWEBP_BUILD_ANIM_UTILS=OFF \
             -DWEBP_BUILD_CWEBP=OFF \
