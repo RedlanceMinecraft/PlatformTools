@@ -2,9 +2,13 @@ package org.redlance.platformtools.webp.impl.libwebp;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.foreign.*;
 import java.lang.invoke.MethodHandle;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public final class LibWebPLibrary {
     final SymbolLookup lookup;
@@ -69,6 +73,38 @@ public final class LibWebPLibrary {
             }
         }
 
+        // 3. Bundled native from JAR
+        try {
+            return tryLoadBundled();
+        } catch (Throwable ignored) {
+        }
+
         return null;
+    }
+
+    private static @Nullable LibWebPLibrary tryLoadBundled() throws IOException {
+        String os = System.getProperty("os.name", "").toLowerCase();
+
+        String name;
+        if (os.contains("linux")) {
+            name = "linux/libwebp.so";
+        } else if (os.contains("win")) {
+            name = "windows/libwebp.dll";
+        } else if (os.contains("mac")) {
+            name = "macos/libwebp.dylib";
+        } else {
+            return null;
+        }
+
+        try (InputStream in = LibWebPLibrary.class.getResourceAsStream("/natives/" + name)) {
+            if (in == null) return null;
+
+            String ext = name.substring(name.lastIndexOf('.'));
+            Path temp = Files.createTempFile("libwebp-", ext);
+            temp.toFile().deleteOnExit();
+            Files.copy(in, temp, StandardCopyOption.REPLACE_EXISTING);
+
+            return new LibWebPLibrary(SymbolLookup.libraryLookup(temp, Arena.global()));
+        }
     }
 }
