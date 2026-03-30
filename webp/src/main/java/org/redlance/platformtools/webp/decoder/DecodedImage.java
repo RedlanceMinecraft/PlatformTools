@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -66,15 +67,27 @@ public abstract sealed class DecodedImage permits LazyDecodedImage, DecodedImage
      */
     public static DecodedImage fromPng(byte[] pngData) throws IOException {
         try (ByteArrayInputStream is = new ByteArrayInputStream(pngData)) {
-            BufferedImage img = ImageIO.read(is);
-            if (img == null) throw new IOException("Failed to decode PNG");
-
-            int w = img.getWidth();
-            int h = img.getHeight();
-            DecodedImage decoded = ofArgb(img.getRGB(0, 0, w, h, null, 0, w), w, h);
+            DecodedImage decoded = fromPng(is);
             decoded.png = pngData;
             return decoded;
         }
+    }
+
+    /**
+     * Parses a PNG image from an {@link InputStream}.
+     * PNG bytes are not cached (unlike {@link #fromPng(byte[])}).
+     *
+     * @param is input stream containing PNG data
+     * @return decoded image
+     * @throws IOException if the data is not a valid PNG or decoding fails
+     */
+    public static DecodedImage fromPng(InputStream is) throws IOException {
+        BufferedImage img = ImageIO.read(is);
+        if (img == null) throw new IOException("Failed to decode PNG");
+
+        int w = img.getWidth();
+        int h = img.getHeight();
+        return ofArgb(img.getRGB(0, 0, w, h, null, 0, w), w, h);
     }
 
     /**
