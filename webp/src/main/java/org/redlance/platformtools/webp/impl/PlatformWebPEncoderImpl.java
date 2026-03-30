@@ -19,17 +19,28 @@ public class PlatformWebPEncoderImpl implements PlatformWebPEncoder {
 
     @Override
     public byte[] encodeLossless(int[] argb, int width, int height) {
+        validateInput(argb, width, height);
         return requireDelegate().encodeLossless(argb, width, height);
     }
 
     @Override
     public byte[] encodeLossy(int[] argb, int width, int height, float quality) {
+        validateInput(argb, width, height);
         return requireDelegate().encodeLossy(argb, width, height, quality);
     }
 
     @Override
     public boolean isAvailable() {
         return this.delegate != null && this.delegate.isAvailable();
+    }
+
+    private static void validateInput(int[] argb, int width, int height) {
+        if (width <= 0 || height <= 0) {
+            throw new IllegalArgumentException("Invalid dimensions: " + width + "x" + height);
+        }
+        if (argb.length < (long) width * height) {
+            throw new IllegalArgumentException("argb array too small: " + argb.length + " < " + width + "*" + height);
+        }
     }
 
     private static @Nullable PlatformWebPEncoder createBackend() {
