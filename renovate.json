@@ -6,7 +6,9 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": ["\\.github/workflows/build-libwebp\\.yml$"],
+      "managerFilePatterns": [
+        "/\\.github/workflows/build-libwebp\\.yml$/"
+      ],
       "matchStrings": ["'(?<currentValue>v\\d+\\.\\d+\\.\\d+)'"],
       "depNameTemplate": "webmproject/libwebp",
       "datasourceTemplate": "github-tags"
