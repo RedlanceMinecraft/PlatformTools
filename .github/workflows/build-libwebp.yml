@@ -34,7 +34,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Clone libwebp
         run: git clone --depth 1 --branch ${{ env.LIBWEBP_VERSION }} https://chromium.googlesource.com/webm/libwebp
@@ -141,7 +141,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
