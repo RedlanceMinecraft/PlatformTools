@@ -45,14 +45,14 @@ repositories {
 
 dependencies {
     // Include only the modules you need:
-    implementation "org.redlance.platformtools:accent:4.2.1"
-    implementation "org.redlance.platformtools:referer:4.2.1"
-    implementation "org.redlance.platformtools:favorites:4.2.1"
-    implementation "org.redlance.platformtools:progress:4.2.1"
-    implementation "org.redlance.platformtools:webp:4.2.1"
+    implementation "org.redlance.platformtools:accent:4.2.2"
+    implementation "org.redlance.platformtools:referer:4.2.2"
+    implementation "org.redlance.platformtools:favorites:4.2.2"
+    implementation "org.redlance.platformtools:progress:4.2.2"
+    implementation "org.redlance.platformtools:webp:4.2.2"
 
     // For Java 8 (Downgraded version), add classifier:
-    // implementation("org.redlance.platformtools:accent:4.2.1:java8")
+    // implementation("org.redlance.platformtools:accent:4.2.2:java8")
 }
 ```
 
@@ -69,7 +69,7 @@ dependencies {
 <dependency>
     <groupId>org.redlance.platformtools</groupId>
     <artifactId>accent</artifactId>
-    <version>4.2.1</version>
+    <version>4.2.2</version>
 </dependency>
 ```
 
@@ -219,13 +219,13 @@ The `webp` module has three variants:
 
 ```groovy
 // Standard — bundled lossless encoder, requires platform decoder or system libwebp for decoding
-implementation "org.redlance.platformtools:webp:4.2.1"
+implementation "org.redlance.platformtools:webp:4.2.2"
 
 // Bundled — self-contained with ngengine decoder + bundled lossless encoder
-implementation "org.redlance.platformtools:webp:4.2.1:bundled"
+implementation "org.redlance.platformtools:webp:4.2.2:bundled"
 
 // Bundled Lite — ngengine decoder only, no native binaries
-implementation "org.redlance.platformtools:webp:4.2.1:bundled-lite"
+implementation "org.redlance.platformtools:webp:4.2.2:bundled-lite"
 ```
 
 ```java
