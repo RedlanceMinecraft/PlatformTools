@@ -8,4 +8,5 @@ module platformtools.accent {
     opens org.redlance.platformtools.accent.impl.windows.jna to com.sun.jna;
     opens org.redlance.platformtools.accent.impl.windows to com.sun.jna;
     opens org.redlance.platformtools.accent.impl.macos to javaobjectivecbridge, com.sun.jna;
+    opens org.redlance.platformtools.accent.impl.linux.jna to com.sun.jna;
 }

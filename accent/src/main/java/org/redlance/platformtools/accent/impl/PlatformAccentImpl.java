@@ -4,6 +4,7 @@ import com.sun.jna.Platform;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.redlance.platformtools.accent.PlatformAccent;
+import org.redlance.platformtools.accent.impl.linux.LinuxAccent;
 import org.redlance.platformtools.accent.impl.macos.MacAccent;
 import org.redlance.platformtools.accent.impl.windows.WindowsAccent;
 
@@ -15,6 +16,7 @@ public class PlatformAccentImpl implements PlatformAccent {
     private final @Nullable PlatformAccent nativePlatformAccent = switch (Platform.getOSType()) {
         case Platform.WINDOWS -> new WindowsAccent();
         case Platform.MAC -> new MacAccent();
+        case Platform.LINUX -> new LinuxAccent();
         default -> null;
     };
 

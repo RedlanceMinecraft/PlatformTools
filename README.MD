@@ -1,6 +1,6 @@
 # PlatformTools
 
-**PlatformTools** is a lightweight Java library designed to provide deep integration with operating system features (macOS and Windows) that are not available in the standard JDK. It utilizes JNA (Java Native Access) to bridge the gap between Java and native OS APIs.
+**PlatformTools** is a lightweight Java library that provides operating system features that are not available in the standard JDK. It uses JNA (Java Native Access) to call native APIs on Linux, macOS, and Windows.
 
 ## Modules
 
@@ -9,7 +9,7 @@ The library is split into independent modules so you can include only what you n
 | Module | Artifact | Description |
 |--------|----------|-------------|
 | **common** | `common` | Shared interfaces and native bindings |
-| **accent** | `accent` | System accent color (Windows & macOS) |
+| **accent** | `accent` | System accent color (Linux, macOS, and Windows) |
 | **referer** | `referer` | File origin/referrer metadata (Windows & macOS) |
 | **favorites** | `favorites` | Finder Sidebar favorites (macOS) |
 | **progress** | `progress` | Taskbar/dock progress bars (macOS) |
@@ -19,7 +19,10 @@ The library is split into independent modules so you can include only what you n
 
 * **[Finder Favorites (macOS)](#1-finder-favorites-macos)** (`favorites`): Programmatically pin, unpin, and check the status of folders in the macOS Finder Sidebar.
     * *Note: Support for Windows Quick Access is planned for future releases.*
-* **[System Accent Color (Windows & macOS)](#2-system-accent-color)** (`accent`): Retrieve the user's system accent color and subscribe to real-time changes (via Windows DWM hooks or macOS `NSDistributedNotificationCenter`).
+* **[System Accent Color](#2-system-accent-color)** (`accent`): Retrieve the user's system accent color and subscribe to changes.
+    * **Linux:** Uses the XDG Desktop Portal Settings interface.
+    * **macOS:** Uses `NSDistributedNotificationCenter`.
+    * **Windows:** Uses DWM hooks.
 * **[File Origin Metadata (Windows & macOS)](#3-file-origin--referrer)** (`referer`): Retrieve the source URL of downloaded files.
     * **macOS:** Reads `kMDItemWhereFroms` metadata.
     * **Windows:** Reads **Alternate Data Streams (ADS)**, specifically `Zone.Identifier`.
@@ -104,6 +107,8 @@ public class FavoritesExample {
 ### 2. System Accent Color
 Get the system's personalization color and listen for changes in real-time.
 
+Linux support requires an XDG Settings portal that provides the `org.freedesktop.appearance` `accent-color` setting.
+
 ```java
 import org.redlance.platformtools.accent.PlatformAccent;
 import java.awt.Color;
@@ -121,7 +126,7 @@ public class AccentExample {
         });
     }
 
-    // Call this if your window is recreated (specifically for Windows hooks)
+    // Call this if the native listener must reconnect.
     public void onWindowRecreated() {
         PlatformAccent.INSTANCE.resubscribe();
     }
