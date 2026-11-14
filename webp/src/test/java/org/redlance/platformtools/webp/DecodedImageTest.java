@@ -33,6 +33,19 @@ class DecodedImageTest {
     }
 
     @Test
+    void equalByPixels() throws IOException {
+        DecodedImage image = DecodedImage.ofArgb(new int[]{1, 2, 3, 4}, 2, 2);
+        DecodedImage copy = DecodedImage.ofArgb(new int[]{1, 2, 3, 4}, 2, 2);
+        assertEquals(image, copy);
+        assertEquals(image.hashCode(), copy.hashCode());
+        assertNotEquals(image, DecodedImage.ofArgb(new int[]{1, 2, 3, 5}, 2, 2));
+        assertNotEquals(image, DecodedImage.ofArgb(new int[]{1, 2, 3, 4}, 4, 1));
+
+        byte[] webp = TestUtils.loadTestWebP();
+        assertEquals(PlatformWebPDecoder.INSTANCE.decode(webp), DecodedImage.fromWebP(webp), "a lazy image should equal the decoded one");
+    }
+
+    @Test
     void isWebPDetection() throws IOException {
         assertTrue(PlatformWebPDecoder.INSTANCE.isWebP(TestUtils.loadTestWebP()));
         assertFalse(PlatformWebPDecoder.INSTANCE.isWebP(new byte[]{1, 2, 3}));

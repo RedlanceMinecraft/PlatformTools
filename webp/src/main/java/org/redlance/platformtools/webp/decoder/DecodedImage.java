@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -32,6 +33,8 @@ public abstract sealed class DecodedImage permits LazyDecodedImage, DecodedImage
 
     private Float webpQuality;
     private byte @Nullable [] webp;
+
+    private int hash;
 
     /**
      * Creates a decoded image from packed ARGB pixels.
@@ -166,5 +169,26 @@ public abstract sealed class DecodedImage permits LazyDecodedImage, DecodedImage
             this.webpQuality = quality;
             this.webp = webp;
         }
+    }
+
+    /**
+     * Images are equal when they have the same size and pixels, however they were created.
+     * The pixels must not change once the image exists, as its hash is computed once.
+     */
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        return o instanceof DecodedImage other && hashCode() == other.hashCode()
+                && width() == other.width() && height() == other.height() && Arrays.equals(argb(), other.argb());
+    }
+
+    @Override
+    public final int hashCode() {
+        int h = this.hash;
+        if (h == 0) {
+            h = 31 * (31 * width() + height()) + Arrays.hashCode(argb());
+            this.hash = h;
+        }
+        return h;
     }
 }
